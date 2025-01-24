@@ -224,12 +224,14 @@ const XRayViewer = () => {
           <div className="space-y-2">
             <label className="text-sm text-gray-300">AI Model</label>
             <Select value={aiModel} onValueChange={setAiModel}>
-              <SelectTrigger className="w-full bg-black/20">
+              <SelectTrigger className="w-full bg-black/20 text-white">
                 <SelectValue placeholder="Select AI Model" className="text-white" />
               </SelectTrigger>
-              <SelectContent className="bg-medical-darker text-white">
+              <SelectContent className="bg-medical-darker">
                 {aiModels.map((m) => (
-                  <SelectItem key={m} value={m} className="text-white hover:bg-medical/20">{m}</SelectItem>
+                  <SelectItem key={m} value={m} className="text-white hover:bg-medical/20">
+                    {m}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -238,12 +240,14 @@ const XRayViewer = () => {
           <div className="space-y-2">
             <label className="text-sm text-gray-300">Viewing Mode</label>
             <Select value={mode} onValueChange={setMode}>
-              <SelectTrigger className="w-full bg-black/20">
+              <SelectTrigger className="w-full bg-black/20 text-white">
                 <SelectValue placeholder="Select mode" className="text-white" />
               </SelectTrigger>
-              <SelectContent className="bg-medical-darker text-white">
+              <SelectContent className="bg-medical-darker">
                 {modes.map((m) => (
-                  <SelectItem key={m} value={m} className="text-white hover:bg-medical/20">{m}</SelectItem>
+                  <SelectItem key={m} value={m} className="text-white hover:bg-medical/20">
+                    {m}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
