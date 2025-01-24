@@ -26,7 +26,9 @@ export default {
         foreground: "hsl(var(--foreground))",
         medical: {
           DEFAULT: "#0EA5E9",
-          dark: "#0284C7"
+          dark: "#0284C7",
+          darker: "#1A1F2C",
+          accent: "#9b87f5"
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",

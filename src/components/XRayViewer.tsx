@@ -53,12 +53,29 @@ const XRayViewer = () => {
   };
 
   const tools = [
-    { icon: <Contrast size={20} />, name: 'Contrast', action: () => {} },
-    { icon: <SunDim size={20} />, name: 'Exposure', action: () => {} },
-    { icon: <ZoomIn size={20} />, name: 'Zoom', action: () => {} },
-    { icon: <Ruler size={20} />, name: 'Measure', action: () => {} },
-    { icon: <Move size={20} />, name: 'Pan', action: () => {} },
-    { icon: <Maximize size={20} />, name: 'Fit Screen', action: () => {} },
+    { icon: <Contrast size={20} />, name: 'Contrast', action: () => {
+      setContrast(prev => Math.min(200, prev + 10));
+      toast({ title: "Contrast increased" });
+    }},
+    { icon: <SunDim size={20} />, name: 'Exposure', action: () => {
+      setExposure(prev => Math.min(200, prev + 10));
+      toast({ title: "Exposure increased" });
+    }},
+    { icon: <ZoomIn size={20} />, name: 'Zoom', action: () => {
+      setZoom(prev => Math.min(200, prev + 10));
+      toast({ title: "Zoom increased" });
+    }},
+    { icon: <Ruler size={20} />, name: 'Measure', action: () => {
+      toast({ title: "Measurement mode activated" });
+    }},
+    { icon: <Move size={20} />, name: 'Pan', action: () => {
+      toast({ title: "Pan mode activated" });
+    }},
+    { icon: <Maximize size={20} />, name: 'Fit Screen', action: () => {
+      setZoom(100);
+      setPosition({ x: 0, y: 0 });
+      toast({ title: "Image reset to fit screen" });
+    }},
   ];
 
   return (
