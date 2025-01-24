@@ -18,18 +18,27 @@ import { useToast } from './ui/use-toast';
 const XRayViewer = () => {
   const { toast } = useToast();
   const [darkMode, setDarkMode] = useState(true);
+  const [aiModel, setAiModel] = useState('');
+  const [mode, setMode] = useState('');
+  const [sensitivity, setSensitivity] = useState(50);
+  const [focus, setFocus] = useState(50);
+  const [noiseCancellation, setNoiseCancellation] = useState(50);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [contrast, setContrast] = useState(100);
   const [exposure, setExposure] = useState(100);
   const [zoom, setZoom] = useState(100);
-  const [mode, setMode] = useState('standard');
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
-  const modes = [
-    { value: 'standard', label: 'Standard' },
-    { value: 'bone', label: 'Bone Enhancement' },
-    { value: 'tissue', label: 'Soft Tissue' },
-    { value: 'contrast', label: 'High Contrast' }
+  const aiModels = [
+    'T3Alpha 1.0.2',
+    'BTAlpha 0.0.4',
+    'HAAlpha 0.0.6'
   ];
+
+  const modes = ['Standard', 'High Contrast', 'Bone Enhancement', 'Soft Tissue'];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -75,15 +84,47 @@ const XRayViewer = () => {
         {/* Viewing window */}
         <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden">
           {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt="X-Ray"
-              className="max-h-full max-w-full object-contain transition-all duration-200"
-              style={{
-                filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                transform: `scale(${zoom/100})`
-              }}
-            />
+            <div className="relative w-full h-[80vh] flex items-center justify-center">
+              <img 
+                src={imageUrl} 
+                alt="X-Ray"
+                className="h-full w-full object-contain cursor-move"
+                onMouseDown={(e) => {
+                  setIsDragging(true);
+                  setDragStart({
+                    x: e.clientX - position.x,
+                    y: e.clientY - position.y
+                  });
+                }}
+                onMouseMove={(e) => {
+                  if (isDragging) {
+                    setPosition({
+                      x: e.clientX - dragStart.x,
+                      y: e.clientY - dragStart.y
+                    });
+                  }
+                }}
+                onMouseUp={() => setIsDragging(false)}
+                onMouseLeave={() => setIsDragging(false)}
+                style={{
+                  filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                }}
+              />
+              {showHeatmap && (
+                <div 
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `
+                      radial-gradient(circle at 50% 60%, rgba(255,0,0,0.8), transparent 40%),
+                      radial-gradient(circle at 45% 55%, rgba(255,255,0,0.7), transparent 30%),
+                      radial-gradient(circle at 55% 65%, rgba(255,69,0,0.75), transparent 35%)
+                    `,
+                    mixBlendMode: 'screen'
+                  }}
+                />
+              )}
+            </div>
           ) : (
             <div className="text-gray-500 flex flex-col items-center gap-4">
               <Upload size={48} className="text-medical" />
@@ -109,6 +150,20 @@ const XRayViewer = () => {
 
         <div className="space-y-4">
           <div className="space-y-2">
+            <label className="text-sm text-gray-300">AI Model</label>
+            <Select value={aiModel} onValueChange={setAiModel}>
+              <SelectTrigger className="w-full bg-black/20">
+                <SelectValue placeholder="Select AI Model" />
+              </SelectTrigger>
+              <SelectContent>
+                {aiModels.map((m) => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <label className="text-sm text-gray-300">Viewing Mode</label>
             <Select value={mode} onValueChange={setMode}>
               <SelectTrigger className="w-full bg-black/20">
@@ -116,12 +171,46 @@ const XRayViewer = () => {
               </SelectTrigger>
               <SelectContent>
                 {modes.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
-                    {m.label}
-                  </SelectItem>
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-gray-300">Sensitivity: {sensitivity}%</label>
+            <Slider
+              value={[sensitivity]}
+              onValueChange={([value]) => setSensitivity(value)}
+              min={0}
+              max={100}
+              step={1}
+              className="py-4"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-gray-300">Focus: {focus}%</label>
+            <Slider
+              value={[focus]}
+              onValueChange={([value]) => setFocus(value)}
+              min={0}
+              max={100}
+              step={1}
+              className="py-4"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm text-gray-300">Noise Cancellation: {noiseCancellation}%</label>
+            <Slider
+              value={[noiseCancellation]}
+              onValueChange={([value]) => setNoiseCancellation(value)}
+              min={0}
+              max={100}
+              step={1}
+              className="py-4"
+            />
           </div>
 
           <div className="space-y-2">
@@ -161,7 +250,15 @@ const XRayViewer = () => {
           </div>
         </div>
 
-        <label className="block w-full mt-6">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => setShowHeatmap(!showHeatmap)}
+        >
+          {showHeatmap ? 'Disable Heatmap' : 'Enable Heatmap'}
+        </Button>
+
+        <label className="block w-full">
           <input
             type="file"
             accept="image/*"
