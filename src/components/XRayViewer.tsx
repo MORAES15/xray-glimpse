@@ -1,43 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Upload, 
-  Sun, 
-  Moon, 
-  ZoomIn,
-  Ruler,
-  Maximize,
-  Move,
-  Grid2X2
-} from 'lucide-react';
-import { Button } from './ui/button';
-import { Slider } from './ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Upload } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
-import ContrastExposureControl from './ContrastExposureControl';
-import { useTheme } from 'next-themes';
-
-// Define the arrays
-const aiModels = [
-  'General Purpose X-Ray AI',
-  'Chest X-Ray Specialist',
-  'Bone Fracture Detection',
-  'Dental X-Ray Analysis',
-  'Mammography AI'
-];
-
-const modes = [
-  'Standard',
-  'High Contrast',
-  'Bone Focus',
-  'Soft Tissue',
-  'Edge Detection'
-];
+import XRayToolbar from './XRayToolbar';
+import XRayControlPanel from './XRayControlPanel';
 
 const XRayViewer = () => {
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
   const [aiModel, setAiModel] = useState('');
   const [mode, setMode] = useState('');
   const [sensitivity, setSensitivity] = useState(50);
@@ -76,105 +46,71 @@ const XRayViewer = () => {
     }
   };
 
-  const [scale, setScale] = useState({ x: 1, y: 1 });
-
-  useEffect(() => {
-    const updateScale = () => {
-        if (imageRef.current && imageRef.current.naturalWidth > 0) {
-            const rect = imageRef.current.getBoundingClientRect();
-            setScale({
-                x: imageRef.current.naturalWidth / rect.width,
-                y: imageRef.current.naturalHeight / rect.height
-            });
-        }
-    };
-
-    if (imageRef.current) {
-        imageRef.current.addEventListener('load', updateScale); // Atualiza quando a imagem carrega
-        updateScale(); // Atualiza imediatamente se a imagem já estiver carregada
-    }
-
-    return () => {
-        if (imageRef.current) {
-            imageRef.current.removeEventListener('load', updateScale);
-        }
-    };
-}, [zoom, images, currentImageIndex]); // Atualiza quando o zoom ou imagem muda
   const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
     if (!start || !end) return "0";
-
-    // Cálculo simples da distância entre os dois pontos
     const dx = end.x - start.x;
     const dy = end.y - start.y;
-
     return Math.sqrt(dx * dx + dy * dy).toFixed(2);
-};
+  };
 
-const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
-  if (!isMeasuring || !imageRef.current) return;
+  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (!isMeasuring || !imageRef.current) return;
 
-  const rect = imageRef.current.getBoundingClientRect();
-  const naturalWidth = imageRef.current.naturalWidth;
-  const naturalHeight = imageRef.current.naturalHeight;
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * imageRef.current.naturalWidth;
+    const y = ((e.clientY - rect.top) / rect.height) * imageRef.current.naturalHeight;
 
-  // Coordenadas relativas à imagem ORIGINAL (sem zoom/posição)
-  const x = ((e.clientX - rect.left) / rect.width) * naturalWidth;
-  const y = ((e.clientY - rect.top) / rect.height) * naturalHeight;
-
-  if (!measureStart) {
+    if (!measureStart) {
       setMeasureStart({ x, y });
       toast({ title: "Start point set" });
-  } else {
+    } else {
       setMeasureEnd({ x, y });
       const distance = calculateDistance(measureStart, { x, y });
       setMeasureDistance(distance);
       toast({ title: `Distance: ${distance}px` });
-  }
-};
+    }
+  };
 
-const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-  if (e.button === 2) { // Botão direito para ajustes
-    e.preventDefault();
-    setAdjustStart({ x: e.clientX, y: e.clientY });
-  } else if (e.button === 0) { // Botão esquerdo
-    if (isMeasuring) {
-      // Chama handleImageClick manualmente para medição
-      handleImageClick(e);
-    } else {
-      setIsDragging(true);
-      setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
+  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (e.button === 2) {
+      e.preventDefault();
+      setAdjustStart({ x: e.clientX, y: e.clientY });
+    } else if (e.button === 0) {
+      if (isMeasuring) {
+        handleImageClick(e);
+      } else {
+        setIsDragging(true);
+        setDragStart({
+          x: e.clientX - position.x,
+          y: e.clientY - position.y
+        });
+      }
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (e.buttons === 2) {
+      const deltaX = e.clientX - adjustStart.x;
+      const deltaY = e.clientY - adjustStart.y;
+      setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
+      setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
+      setAdjustStart({ x: e.clientX, y: e.clientY });
+    } else if (isDragging && e.buttons === 0) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
       });
     }
-  }
-};
+  };
 
-const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-  if (e.buttons === 2) { // Apenas botão direito pressionado
-    const deltaX = e.clientX - adjustStart.x;
-    const deltaY = e.clientY - adjustStart.y;
-    
-    setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
-    setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
-    
-    setAdjustStart({ x: e.clientX, y: e.clientY });
-  } else if (isDragging && e.buttons === 0) {
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  }
-};
-
-const handleClickOutside = (e: MouseEvent) => {
-  if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
-    setIsMeasuring(false);
-    setMeasureStart(null);
-    setMeasureEnd(null);
-    setMeasureDistance(null);
-  }
-};
+  const handleClickOutside = (e: MouseEvent) => {
+    if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
+      setIsMeasuring(false);
+      setMeasureStart(null);
+      setMeasureEnd(null);
+      setMeasureDistance(null);
+    }
+  };
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -183,88 +119,21 @@ const handleClickOutside = (e: MouseEvent) => {
     };
   }, []);
 
-  const tools = [
-    { 
-      icon: <ContrastExposureControl 
-        onContrastChange={setContrast} 
-        onExposureChange={setExposure} 
-      />, 
-      name: 'Contrast/Exposure',
-      action: () => {
-        toast({ 
-          title: "Clique e arraste com o botão DIREITO para ajustar contraste/exposição"
-        });
-      }
-    },
-    { 
-      icon: <ZoomIn size={20} className="text-white" />, 
-      name: 'Zoom', 
-      action: () => {
-        setZoom(prev => Math.min(200, prev + 10));
-        toast({ title: "Zoom increased" });
-      }
-    },
-    { 
-      icon: <Ruler size={20} className="text-white" />, 
-      name: 'Measure', 
-      action: () => {
-        setIsMeasuring(!isMeasuring);
-        if (!isMeasuring) {
-          setMeasureStart(null);
-          setMeasureEnd(null);
-          setMeasureDistance(null);
-          toast({ title: "Click two points to measure distance" });
-        }
-      }
-    },
-    { 
-      icon: <Move size={20} className="text-white" />, 
-      name: 'Pan', 
-      action: () => {
-        setIsDragging(false);
-        toast({ title: "Pan mode activated" });
-      }
-    },
-    { 
-      icon: <Maximize size={20} className="text-white" />, 
-      name: 'Fit Screen', 
-      action: () => {
-        setZoom(100);
-        setPosition({ x: 0, y: 0 });
-        toast({ title: "Image reset to fit screen" });
-      }
-    },
-    { 
-      icon: <Grid2X2 size={20} className="text-white" />, 
-      name: 'Grid View', 
-      action: () => {
-        setIsGridView(!isGridView);
-        toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
-      }
-    },
-  ];
-
   return (
     <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
         <div className="flex gap-4 flex-row md:flex-col">
-          <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
-            {tools.map((tool, index) => (
-              <div key={index}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={tool.action}
-                  className={`hover:bg-medical/20 ${
-                    (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
-                  }`}
-                  title={tool.name}
-                >
-                  {tool.icon}
-                </Button>
-              </div>
-            ))}
-          </div>
+          <XRayToolbar
+            isMeasuring={isMeasuring}
+            setIsMeasuring={setIsMeasuring}
+            setZoom={setZoom}
+            setPosition={setPosition}
+            setIsDragging={setIsDragging}
+            isGridView={isGridView}
+            setIsGridView={setIsGridView}
+            setContrast={setContrast}
+            setExposure={setExposure}
+          />
         </div>
 
         <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative" ref={viewerRef}>
@@ -345,7 +214,7 @@ const handleClickOutside = (e: MouseEvent) => {
                         {measureDistance}px
                       </text>
                     </svg>
-                  )} 
+                  )}
                 </div>
               )}
               {images.length > 0 && (
@@ -377,120 +246,23 @@ const handleClickOutside = (e: MouseEvent) => {
         </div>
       </div>
 
-      <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn hidden md:block">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-white">Controls</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? <Sun /> : <Moon />}
-          </Button>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">AI Model</label>
-            <Select value={aiModel} onValueChange={setAiModel}>
-              <SelectTrigger className="w-full bg-black/20 text-white">
-                <SelectValue placeholder="Select AI Model" />
-              </SelectTrigger>
-              <SelectContent>
-                {aiModels.map((m) => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Viewing Mode</label>
-            <Select value={mode} onValueChange={setMode}>
-              <SelectTrigger className="w-full bg-black/20 text-white">
-                <SelectValue placeholder="Select mode" />
-              </SelectTrigger>
-              <SelectContent>
-                {modes.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Sensitivity: {sensitivity}%</label>
-            <Slider
-              value={[sensitivity]}
-              onValueChange={([value]) => setSensitivity(value)}
-              min={0}
-              max={100}
-              step={1}
-              className="py-4"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Focus: {focus}%</label>
-            <Slider
-              value={[focus]}
-              onValueChange={([value]) => setFocus(value)}
-              min={0}
-              max={100}
-              step={1}
-              className="py-4"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Noise Cancellation: {noiseCancellation}%</label>
-            <Slider
-              value={[noiseCancellation]}
-              onValueChange={([value]) => setNoiseCancellation(value)}
-              min={0}
-              max={100}
-              step={1}
-              className="py-4"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Zoom: {zoom}%</label>
-            <Slider
-              value={[zoom]}
-              onValueChange={([value]) => setZoom(value)}
-              min={50}
-              max={200}
-              step={1}
-              className="py-4"
-            />
-          </div>
-        </div>
-
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => setShowHeatmap(!showHeatmap)}
-        >
-          {showHeatmap ? 'Disable Heatmap' : 'Enable Heatmap'}
-        </Button>
-
-        <label className="block w-full">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <div className="flex items-center justify-center p-4 border-2 border-dashed border-medical/50 rounded-lg cursor-pointer hover:bg-medical/10 transition-colors">
-            <Upload className="w-5 h-5 mr-2 text-medical" />
-            <span className="text-sm font-medium">Upload X-Ray Images</span>
-          </div>
-        </label>
-      </div>
+      <XRayControlPanel
+        aiModel={aiModel}
+        setAiModel={setAiModel}
+        mode={mode}
+        setMode={setMode}
+        sensitivity={sensitivity}
+        setSensitivity={setSensitivity}
+        focus={focus}
+        setFocus={setFocus}
+        noiseCancellation={noiseCancellation}
+        setNoiseCancellation={setNoiseCancellation}
+        zoom={zoom}
+        setZoom={setZoom}
+        showHeatmap={showHeatmap}
+        setShowHeatmap={setShowHeatmap}
+        onFileUpload={handleFileUpload}
+      />
     </div>
   );
 };
