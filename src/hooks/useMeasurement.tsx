@@ -9,7 +9,6 @@ export const useMeasurement = () => {
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
 
   const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    if (!start || !end) return "0";
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     return Math.sqrt(dx * dx + dy * dy).toFixed(2);
@@ -40,9 +39,13 @@ export const useMeasurement = () => {
     isMeasuring,
     setIsMeasuring,
     measureStart,
+    setMeasureStart,
     measureEnd,
+    setMeasureEnd,
     measureDistance,
+    setMeasureDistance,
     handleMeasureClick,
-    resetMeasurement
+    resetMeasurement,
+    calculateDistance
   };
 };

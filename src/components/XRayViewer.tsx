@@ -30,10 +30,14 @@ const XRayViewer = () => {
     isMeasuring,
     setIsMeasuring,
     measureStart,
+    setMeasureStart,
     measureEnd,
+    setMeasureEnd,
     measureDistance,
+    setMeasureDistance,
     handleMeasureClick,
-    resetMeasurement
+    resetMeasurement,
+    calculateDistance
   } = useMeasurement();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,6 +153,10 @@ const XRayViewer = () => {
                     showHeatmap={showHeatmap}
                     zoom={zoom}
                     position={position}
+                    measureStart={measureStart}
+                    measureEnd={measureEnd}
+                    measureDistance={measureDistance}
+                    isMeasuring={isMeasuring}
                   />
                 </div>
               ) : (
