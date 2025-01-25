@@ -18,6 +18,23 @@ import XRayGrid from './XRayGrid';
 import ContrastExposureControl from './ContrastExposureControl';
 import { useTheme } from 'next-themes';
 
+// Define the missing arrays
+const aiModels = [
+  'General Purpose X-Ray AI',
+  'Chest X-Ray Specialist',
+  'Bone Fracture Detection',
+  'Dental X-Ray Analysis',
+  'Mammography AI'
+];
+
+const modes = [
+  'Standard',
+  'High Contrast',
+  'Bone Focus',
+  'Soft Tissue',
+  'Edge Detection'
+];
+
 const XRayViewer = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
