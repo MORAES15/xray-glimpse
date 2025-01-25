@@ -1,11 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, 
   Sun, 
   Moon, 
-  ZoomIn, 
-  Contrast, 
-  SunDim,
+  ZoomIn,
   Ruler,
   Maximize,
   Move,
@@ -17,10 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
+import ContrastExposureControl from './ContrastExposureControl';
+import { useTheme } from 'next-themes';
 
 const XRayViewer = () => {
   const { toast } = useToast();
-  const [darkMode, setDarkMode] = useState(true);
+  const { theme, setTheme } = useTheme();
   const [aiModel, setAiModel] = useState('');
   const [mode, setMode] = useState('');
   const [sensitivity, setSensitivity] = useState(50);
@@ -38,16 +38,10 @@ const XRayViewer = () => {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null);
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
+  const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
-
-  const aiModels = [
-    'T3Alpha 1.0.2',
-    'BTAlpha 0.0.4',
-    'HAAlpha 0.0.6'
-  ];
-
-  const modes = ['Standard', 'High Contrast', 'Bone Enhancement', 'Soft Tissue'];
+  const viewerRef = useRef<HTMLDivElement>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -65,8 +59,11 @@ const XRayViewer = () => {
   };
 
   const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
+    if (!imageRef.current) return "0";
+    const rect = imageRef.current.getBoundingClientRect();
+    const scale = imageRef.current.naturalWidth / rect.width;
+    const dx = (end.x - start.x) * scale;
+    const dy = (end.y - start.y) * scale;
     return Math.sqrt(dx * dx + dy * dy).toFixed(2);
   };
 
@@ -83,22 +80,29 @@ const XRayViewer = () => {
     } else {
       setMeasureEnd({ x, y });
       const distance = calculateDistance(measureStart, { x, y });
+      setMeasureDistance(distance);
       toast({ title: `Distance: ${distance}px` });
-      setIsMeasuring(false);
-      setMeasureStart(null);
-      setMeasureEnd(null);
     }
   };
 
+  const handleClickOutside = (e: MouseEvent) => {
+    if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
+      setIsMeasuring(false);
+      setMeasureStart(null);
+      setMeasureEnd(null);
+      setMeasureDistance(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const tools = [
-    { icon: <Contrast size={20} className="text-white" />, name: 'Contrast', action: () => {
-      setContrast(prev => Math.min(200, prev + 10));
-      toast({ title: "Contrast increased" });
-    }},
-    { icon: <SunDim size={20} className="text-white" />, name: 'Exposure', action: () => {
-      setExposure(prev => Math.min(200, prev + 10));
-      toast({ title: "Exposure increased" });
-    }},
+    { icon: <ContrastExposureControl onContrastChange={setContrast} onExposureChange={setExposure} />, name: 'Contrast/Exposure' },
     { icon: <ZoomIn size={20} className="text-white" />, name: 'Zoom', action: () => {
       setZoom(prev => Math.min(200, prev + 10));
       toast({ title: "Zoom increased" });
@@ -126,107 +130,116 @@ const XRayViewer = () => {
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
         <div className="flex gap-4 flex-row md:flex-col">
           <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
-            {tools.map((tool) => (
-              <Button
-                key={tool.name}
-                variant="ghost"
-                size="icon"
-                onClick={tool.action}
-                className="hover:bg-medical/20"
-                title={tool.name}
-              >
-                {tool.icon}
-              </Button>
+            {tools.map((tool, index) => (
+              <div key={index}>
+                {typeof tool.icon === 'object' && React.isValidElement(tool.icon) ? (
+                  tool.icon
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={tool.action}
+                    className="hover:bg-medical/20"
+                    title={tool.name}
+                  >
+                    {tool.icon}
+                  </Button>
+                )}
+              </div>
             ))}
           </div>
-
-          {images.length > 0 && (
-            <XRayQueue
-              images={images}
-              currentIndex={currentImageIndex}
-              onSelect={setCurrentImageIndex}
-            />
-          )}
         </div>
 
-        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden">
+        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative" ref={viewerRef}>
           {images.length > 0 ? (
-            isGridView ? (
-              <XRayGrid
-                images={images}
-                startIndex={Math.floor(currentImageIndex / 4) * 4}
-              />
-            ) : (
-              <div className="relative w-full h-[80vh] flex items-center justify-center">
-                <img 
-                  ref={imageRef}
-                  src={images[currentImageIndex]} 
-                  alt="X-Ray"
-                  className="h-full w-full object-contain cursor-move"
-                  onClick={handleImageClick}
-                  onMouseDown={(e) => {
-                    if (!isMeasuring) {
-                      setIsDragging(true);
-                      setDragStart({
-                        x: e.clientX - position.x,
-                        y: e.clientY - position.y
-                      });
-                    }
-                  }}
-                  onMouseMove={(e) => {
-                    if (isDragging && !isMeasuring) {
-                      setPosition({
-                        x: e.clientX - dragStart.x,
-                        y: e.clientY - dragStart.y
-                      });
-                    }
-                  }}
-                  onMouseUp={() => setIsDragging(false)}
-                  onMouseLeave={() => setIsDragging(false)}
-                  style={{
-                    filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                  }}
+            <>
+              {isGridView ? (
+                <XRayGrid
+                  images={images}
+                  startIndex={Math.floor(currentImageIndex / 4) * 4}
                 />
-              {measureStart && (
-                <div 
-                  className="absolute w-2 h-2 bg-medical rounded-full pointer-events-none"
-                  style={{ 
-                    left: measureStart.x - 4,
-                    top: measureStart.y - 4
-                  }}
-                />
-              )}
-              {measureStart && measureEnd && (
-                <svg
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ width: '100%', height: '100%' }}
-                >
-                  <line
-                    x1={measureStart.x}
-                    y1={measureStart.y}
-                    x2={measureEnd.x}
-                    y2={measureEnd.y}
-                    stroke="#0EA5E9"
-                    strokeWidth="2"
+              ) : (
+                <div className="relative w-full h-[80vh] flex items-center justify-center">
+                  <img 
+                    ref={imageRef}
+                    src={images[currentImageIndex]} 
+                    alt="X-Ray"
+                    className="h-full w-full object-contain cursor-move"
+                    onClick={handleImageClick}
+                    onMouseDown={(e) => {
+                      if (!isMeasuring) {
+                        setIsDragging(true);
+                        setDragStart({
+                          x: e.clientX - position.x,
+                          y: e.clientY - position.y
+                        });
+                      }
+                    }}
+                    onMouseMove={(e) => {
+                      if (isDragging && !isMeasuring) {
+                        setPosition({
+                          x: e.clientX - dragStart.x,
+                          y: e.clientY - dragStart.y
+                        });
+                      }
+                    }}
+                    onMouseUp={() => setIsDragging(false)}
+                    onMouseLeave={() => setIsDragging(false)}
+                    style={{
+                      filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                    }}
                   />
-                </svg>
+                  {measureStart && (
+                    <div 
+                      className="absolute w-2 h-2 bg-medical rounded-full pointer-events-none"
+                      style={{ 
+                        left: measureStart.x - 4,
+                        top: measureStart.y - 4
+                      }}
+                    />
+                  )}
+                  {measureStart && measureEnd && (
+                    <>
+                      <svg
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ width: '100%', height: '100%' }}
+                      >
+                        <line
+                          x1={measureStart.x}
+                          y1={measureStart.y}
+                          x2={measureEnd.x}
+                          y2={measureEnd.y}
+                          stroke="#0EA5E9"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                      {measureDistance && (
+                        <div 
+                          className="absolute bg-medical text-white px-2 py-1 rounded text-sm pointer-events-none"
+                          style={{
+                            left: (measureStart.x + measureEnd.x) / 2,
+                            top: (measureStart.y + measureEnd.y) / 2,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                        >
+                          {measureDistance}px
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
-              {showHeatmap && (
-                <div 
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: `
-                      radial-gradient(circle at 50% 60%, rgba(255,0,0,0.8), transparent 40%),
-                      radial-gradient(circle at 45% 55%, rgba(255,255,0,0.7), transparent 30%),
-                      radial-gradient(circle at 55% 65%, rgba(255,69,0,0.75), transparent 35%)
-                    `,
-                    mixBlendMode: 'screen'
-                  }}
-                />
+              {images.length > 0 && (
+                <div className="absolute right-0 top-0 bottom-0 w-24">
+                  <XRayQueue
+                    images={images}
+                    currentIndex={currentImageIndex}
+                    onSelect={setCurrentImageIndex}
+                  />
+                </div>
               )}
-              </div>
-            )
+            </>
           ) : (
             <div className="text-gray-500 flex flex-col items-center gap-4">
               <Upload size={48} className="text-medical" />
@@ -242,10 +255,10 @@ const XRayViewer = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="hover:bg-medical/20"
           >
-            {darkMode ? <Sun size={20} className="text-white" /> : <Moon size={20} className="text-white" />}
+            {theme === 'dark' ? <Sun size={20} className="text-white" /> : <Moon size={20} className="text-white" />}
           </Button>
         </div>
 
