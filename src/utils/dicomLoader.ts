@@ -2,7 +2,6 @@ import * as cornerstone from 'cornerstone-core';
 import * as dicomParser from 'dicom-parser';
 
 export const initializeDicomLoader = () => {
-  // Initialize cornerstone
   cornerstone.enable(document.body);
 };
 
@@ -16,7 +15,6 @@ export const loadDicomFile = async (file: File): Promise<string> => {
         const byteArray = new Uint8Array(arrayBuffer);
         const dataSet = dicomParser.parseDicom(byteArray);
         
-        // Create image object
         const image = {
           imageId: URL.createObjectURL(file),
           minPixelValue: 0,
@@ -36,7 +34,6 @@ export const loadDicomFile = async (file: File): Promise<string> => {
           getPixelData: () => new Uint8Array(arrayBuffer)
         };
 
-        // Register the image with cornerstone
         cornerstone.registerImageLoader(image.imageId, () => Promise.resolve(image));
         
         resolve(image.imageId);
@@ -59,9 +56,9 @@ export const getDicomMetadata = (imageId: string) => {
   if (!image) return null;
   
   return {
-    windowCenter: image.windowCenter,
-    windowWidth: image.windowWidth,
-    rows: image.rows,
-    columns: image.columns
+    windowCenter: image.image.windowCenter,
+    windowWidth: image.image.windowWidth,
+    rows: image.image.rows,
+    columns: image.image.columns
   };
 };

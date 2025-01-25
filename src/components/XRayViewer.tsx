@@ -5,7 +5,8 @@ import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
-import { initializeDicomLoader, loadDicomFile } from '../utils/dicomLoader';
+import DicomMetadataPanel from './DicomMetadataPanel';
+import { initializeDicomLoader, loadDicomFile, isDicomImage } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
   const { toast } = useToast();
@@ -163,7 +164,11 @@ const XRayViewer = () => {
             setIsGridView={setIsGridView}
             setContrast={setContrast}
             setExposure={setExposure}
+            currentImageId={images[currentImageIndex]}
           />
+          {isDicomImage(images[currentImageIndex]) && (
+            <DicomMetadataPanel imageId={images[currentImageIndex]} />
+          )}
         </div>
 
         <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative" ref={viewerRef}>
