@@ -8,12 +8,15 @@ import {
   SunDim,
   Ruler,
   Maximize,
-  Move
+  Move,
+  Grid2X2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from './ui/use-toast';
+import XRayQueue from './XRayQueue';
+import XRayGrid from './XRayGrid';
 
 const XRayViewer = () => {
   const { toast } = useToast();
@@ -23,7 +26,8 @@ const XRayViewer = () => {
   const [sensitivity, setSensitivity] = useState(50);
   const [focus, setFocus] = useState(50);
   const [noiseCancellation, setNoiseCancellation] = useState(50);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [contrast, setContrast] = useState(100);
   const [exposure, setExposure] = useState(100);
   const [zoom, setZoom] = useState(100);
@@ -34,6 +38,7 @@ const XRayViewer = () => {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null);
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
+  const [isGridView, setIsGridView] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
 
   const aiModels = [
@@ -45,13 +50,16 @@ const XRayViewer = () => {
   const modes = ['Standard', 'High Contrast', 'Bone Enhancement', 'Soft Tissue'];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImageUrl(url);
+    const files = event.target.files;
+    if (files) {
+      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+      setImages(prev => [...prev, ...newImages]);
+      if (images.length === 0) {
+        setCurrentImageIndex(0);
+      }
       toast({
-        title: "Image uploaded",
-        description: "X-Ray image has been loaded successfully.",
+        title: `${files.length} image(s) uploaded`,
+        description: "X-Ray images have been loaded successfully.",
       });
     }
   };
@@ -107,59 +115,79 @@ const XRayViewer = () => {
       setPosition({ x: 0, y: 0 });
       toast({ title: "Image reset to fit screen" });
     }},
+    { icon: <Grid2X2 size={20} className="text-white" />, name: 'Grid View', action: () => {
+      setIsGridView(!isGridView);
+      toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
+    }},
   ];
 
   return (
     <div className="flex h-screen p-4 gap-4">
       <div className="flex flex-1 gap-4">
-        <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
-          {tools.map((tool) => (
-            <Button
-              key={tool.name}
-              variant="ghost"
-              size="icon"
-              onClick={tool.action}
-              className="hover:bg-medical/20"
-              title={tool.name}
-            >
-              {tool.icon}
-            </Button>
-          ))}
+        <div className="flex gap-4">
+          <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
+            {tools.map((tool) => (
+              <Button
+                key={tool.name}
+                variant="ghost"
+                size="icon"
+                onClick={tool.action}
+                className="hover:bg-medical/20"
+                title={tool.name}
+              >
+                {tool.icon}
+              </Button>
+            ))}
+          </div>
+
+          {images.length > 0 && (
+            <XRayQueue
+              images={images}
+              currentIndex={currentImageIndex}
+              onSelect={setCurrentImageIndex}
+            />
+          )}
         </div>
 
         <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden">
-          {imageUrl ? (
-            <div className="relative w-full h-[80vh] flex items-center justify-center">
-              <img 
-                ref={imageRef}
-                src={imageUrl} 
-                alt="X-Ray"
-                className="h-full w-full object-contain cursor-move"
-                onClick={handleImageClick}
-                onMouseDown={(e) => {
-                  if (!isMeasuring) {
-                    setIsDragging(true);
-                    setDragStart({
-                      x: e.clientX - position.x,
-                      y: e.clientY - position.y
-                    });
-                  }
-                }}
-                onMouseMove={(e) => {
-                  if (isDragging && !isMeasuring) {
-                    setPosition({
-                      x: e.clientX - dragStart.x,
-                      y: e.clientY - dragStart.y
-                    });
-                  }
-                }}
-                onMouseUp={() => setIsDragging(false)}
-                onMouseLeave={() => setIsDragging(false)}
-                style={{
-                  filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                  transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                }}
+          {images.length > 0 ? (
+            isGridView ? (
+              <XRayGrid
+                images={images}
+                startIndex={Math.floor(currentImageIndex / 4) * 4}
               />
+            ) : (
+              <div className="relative w-full h-[80vh] flex items-center justify-center">
+                <img 
+                  ref={imageRef}
+                  src={images[currentImageIndex]} 
+                  alt="X-Ray"
+                  className="h-full w-full object-contain cursor-move"
+                  onClick={handleImageClick}
+                  onMouseDown={(e) => {
+                    if (!isMeasuring) {
+                      setIsDragging(true);
+                      setDragStart({
+                        x: e.clientX - position.x,
+                        y: e.clientY - position.y
+                      });
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    if (isDragging && !isMeasuring) {
+                      setPosition({
+                        x: e.clientX - dragStart.x,
+                        y: e.clientY - dragStart.y
+                      });
+                    }
+                  }}
+                  onMouseUp={() => setIsDragging(false)}
+                  onMouseLeave={() => setIsDragging(false)}
+                  style={{
+                    filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                  }}
+                />
               {measureStart && (
                 <div 
                   className="absolute w-2 h-2 bg-medical rounded-full pointer-events-none"
@@ -197,11 +225,12 @@ const XRayViewer = () => {
                   }}
                 />
               )}
-            </div>
+              </div>
+            )
           ) : (
             <div className="text-gray-500 flex flex-col items-center gap-4">
               <Upload size={48} className="text-medical" />
-              <span>Upload an X-Ray image to begin</span>
+              <span>Upload X-Ray images to begin</span>
             </div>
           )}
         </div>
