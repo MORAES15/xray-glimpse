@@ -39,6 +39,7 @@ const XRayGrid = ({
 }: XRayGridProps) => {
   const gridImages = images.slice(startIndex, startIndex + 4);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
 
@@ -52,6 +53,11 @@ const XRayGrid = ({
       buttons: 1
     }) as unknown as React.MouseEvent<HTMLImageElement>;
     onMouseMove?.(fakeEvent);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>, index: number) => {
+    setActiveImageIndex(index);
+    onMouseDown?.(e);
   };
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -84,7 +90,7 @@ const XRayGrid = ({
             alt={`X-Ray ${startIndex + index + 1}`}
             className={`w-full h-full object-contain ${showHeatmap ? 'heatmap-filter' : ''}`}
             onClick={(e) => hoveredIndex === index && onImageClick?.(e)}
-            onMouseDown={(e) => hoveredIndex === index && onMouseDown?.(e)}
+            onMouseDown={(e) => hoveredIndex === index && handleMouseDown(e, index)}
             onMouseMove={(e) => hoveredIndex === index && onMouseMove?.(e)}
             onMouseUp={() => hoveredIndex === index && onMouseUp?.()}
             onWheel={handleWheel}
@@ -96,7 +102,7 @@ const XRayGrid = ({
               transition: hoveredIndex === index ? 'none' : 'transform 0.2s ease-out'
             }}
           />
-          {isMeasuring && measureStart && measureEnd && hoveredIndex === index && (
+          {isMeasuring && measureStart && measureEnd && activeImageIndex === index && (
             <svg
               className="absolute inset-0 pointer-events-none"
               style={{ 
@@ -135,7 +141,7 @@ const XRayGrid = ({
                   dominantBaseline="central"
                   textAnchor="middle"
                 >
-                  {measureDistance}px
+                  {measureDistance}
                 </text>
               )}
             </svg>

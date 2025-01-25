@@ -61,7 +61,10 @@ const XRayViewer = () => {
       setAdjustStart({ x: e.clientX, y: e.clientY });
     } else if (e.button === 0) {
       if (isMeasuring) {
-        handleMeasureClick(e);
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        handleMeasureClick(x, y);
       } else {
         setIsDragging(true);
         setDragStart({
