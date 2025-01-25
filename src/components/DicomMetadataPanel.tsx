@@ -12,6 +12,10 @@ const DicomMetadataPanel = ({ imageId }: DicomMetadataPanelProps) => {
   const metadata = getDicomMetadata(imageId);
   if (!metadata) return null;
 
+  const formatValue = (value: number | undefined) => {
+    return typeof value === 'number' ? value.toFixed(2) : '0.00';
+  };
+
   return (
     <div className="bg-black/60 p-4 rounded-lg">
       <h3 className="text-white font-semibold mb-2">DICOM Metadata</h3>
@@ -19,15 +23,15 @@ const DicomMetadataPanel = ({ imageId }: DicomMetadataPanelProps) => {
         <div className="space-y-2">
           <div className="text-sm text-gray-300">
             <span className="font-medium">Window Center: </span>
-            {metadata.windowCenter.toFixed(2)}
+            {formatValue(metadata.windowCenter)}
           </div>
           <div className="text-sm text-gray-300">
             <span className="font-medium">Window Width: </span>
-            {metadata.windowWidth.toFixed(2)}
+            {formatValue(metadata.windowWidth)}
           </div>
           <div className="text-sm text-gray-300">
             <span className="font-medium">Scale: </span>
-            {metadata.scale.toFixed(2)}
+            {formatValue(metadata.scale)}
           </div>
         </div>
       </ScrollArea>

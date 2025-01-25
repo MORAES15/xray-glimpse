@@ -7,15 +7,26 @@ export const initializeDicomLoader = () => {
 
 const loadImageFromArrayBuffer = async (imageId: string) => {
   try {
-    const response = await fetch(imageId);
+    // Remove the 'dicomFile:' prefix to get the actual blob URL
+    const blobUrl = imageId.replace('dicomFile:', '');
+    const response = await fetch(blobUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const arrayBuffer = await response.arrayBuffer();
     const byteArray = new Uint8Array(arrayBuffer);
     const dataSet = dicomParser.parseDicom(byteArray);
 
     const pixelDataElement = dataSet.elements.x7fe00010;
+    if (!pixelDataElement) {
+      throw new Error('No pixel data found in DICOM file');
+    }
+
     const pixelData = new Uint16Array(arrayBuffer, pixelDataElement.dataOffset, pixelDataElement.length / 2);
 
-    const image = {
+    return {
       imageId,
       minPixelValue: 0,
       maxPixelValue: 4095, // Typical for 12-bit DICOM
@@ -33,8 +44,6 @@ const loadImageFromArrayBuffer = async (imageId: string) => {
       sizeInBytes: byteArray.length,
       getPixelData: () => pixelData
     };
-
-    return image;
   } catch (error) {
     console.error('Error loading DICOM image:', error);
     throw error;
@@ -57,11 +66,13 @@ export const getDicomMetadata = (imageId: string) => {
     if (!element) return null;
     
     const viewport = cornerstone.getViewport(element);
+    if (!viewport) return null;
+
     return {
-      windowCenter: viewport?.voi?.windowCenter,
-      windowWidth: viewport?.voi?.windowWidth,
-      scale: viewport?.scale,
-      translation: viewport?.translation
+      windowCenter: viewport.voi?.windowCenter ?? 0,
+      windowWidth: viewport.voi?.windowWidth ?? 0,
+      scale: viewport.scale ?? 1,
+      translation: viewport.translation ?? { x: 0, y: 0 }
     };
   } catch (error) {
     console.error('Error getting DICOM metadata:', error);
