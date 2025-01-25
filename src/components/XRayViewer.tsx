@@ -5,6 +5,7 @@ import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
+import { initializeDicomLoader, loadDicomFile } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
   const { toast } = useToast();
@@ -31,17 +32,40 @@ const XRayViewer = () => {
   const imageRef = useRef<HTMLImageElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    initializeDicomLoader();
+  }, []);
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+      const newImages: string[] = [];
+      
+      for (const file of Array.from(files)) {
+        try {
+          if (file.type === 'application/dicom' || file.name.endsWith('.dcm')) {
+            const imageId = await loadDicomFile(file);
+            newImages.push(imageId);
+          } else {
+            newImages.push(URL.createObjectURL(file));
+          }
+        } catch (error) {
+          toast({
+            title: "Error loading file",
+            description: `Failed to load ${file.name}. Make sure it's a valid image or DICOM file.`,
+            variant: "destructive"
+          });
+        }
+      }
+      
       setImages(prev => [...prev, ...newImages]);
       if (images.length === 0) {
         setCurrentImageIndex(0);
       }
+      
       toast({
-        title: `${files.length} image(s) uploaded`,
-        description: "X-Ray images have been loaded successfully.",
+        title: `${newImages.length} file(s) uploaded`,
+        description: "Images have been loaded successfully.",
       });
     }
   };
