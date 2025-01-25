@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
@@ -23,6 +23,7 @@ const XRayViewer = () => {
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     initializeDicomLoader();
@@ -33,6 +34,21 @@ const XRayViewer = () => {
     if (images.length === 0) {
       setCurrentImageIndex(0);
     }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (isMeasuring) return;
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (!isDragging || isMeasuring) return;
+    const deltaX = e.movementX;
+    const deltaY = e.movementY;
+    setPosition(prev => ({
+      x: prev.x + deltaX,
+      y: prev.y + deltaY
+    }));
   };
 
   const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {

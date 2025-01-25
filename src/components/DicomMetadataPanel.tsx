@@ -26,8 +26,8 @@ const DicomMetadataPanel = ({ imageId }: DicomMetadataPanelProps) => {
             {metadata.windowWidth.toFixed(2)}
           </div>
           <div className="text-sm text-gray-300">
-            <span className="font-medium">Image Size: </span>
-            {metadata.columns}x{metadata.rows} pixels
+            <span className="font-medium">Scale: </span>
+            {metadata.scale.toFixed(2)}
           </div>
         </div>
       </ScrollArea>
