@@ -63,6 +63,17 @@ const XRayGrid = ({
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
   };
+
+  const getAdjustedCoordinates = (x: number, y: number, imageRef: HTMLImageElement) => {
+    const rect = imageRef.getBoundingClientRect();
+    const scaleX = imageRef.naturalWidth / rect.width;
+    const scaleY = imageRef.naturalHeight / rect.height;
+    
+    return {
+      x: (x - position.x) * scaleX / (zoom / 100),
+      y: (y - position.y) * scaleY / (zoom / 100)
+    };
+  };
   
   return (
     <div 
@@ -70,87 +81,101 @@ const XRayGrid = ({
       ref={containerRef}
       onContextMenu={handleContextMenu}
     >
-      {gridImages.map((img, index) => (
-        <div 
-          key={index} 
-          className="relative bg-black/20 rounded-lg overflow-hidden"
-          style={{ 
-            height: 'calc(35vh - 1rem)',
-            maxHeight: 'calc(50vh - 2rem)'
-          }}
-          onMouseEnter={() => setHoveredIndex(index)}
-          onMouseLeave={() => {
-            setHoveredIndex(null);
-            onMouseLeave?.();
-          }}
-        >
-          <img 
-            ref={el => imageRefs.current[index] = el}
-            src={img}
-            alt={`X-Ray ${startIndex + index + 1}`}
-            className={`w-full h-full object-contain ${showHeatmap ? 'heatmap-filter' : ''}`}
-            onClick={(e) => hoveredIndex === index && onImageClick?.(e)}
-            onMouseDown={(e) => hoveredIndex === index && handleMouseDown(e, index)}
-            onMouseMove={(e) => hoveredIndex === index && onMouseMove?.(e)}
-            onMouseUp={() => hoveredIndex === index && onMouseUp?.()}
-            onWheel={handleWheel}
-            style={{
-              filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-              transform: hoveredIndex === index ? 
-                `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
-                'none',
-              transition: hoveredIndex === index ? 'none' : 'transform 0.2s ease-out'
+      {gridImages.map((img, index) => {
+        const currentImageRef = imageRefs.current[index];
+        let adjustedStart = measureStart;
+        let adjustedEnd = measureEnd;
+
+        if (currentImageRef && activeImageIndex === index) {
+          if (measureStart) {
+            adjustedStart = getAdjustedCoordinates(measureStart.x, measureStart.y, currentImageRef);
+          }
+          if (measureEnd) {
+            adjustedEnd = getAdjustedCoordinates(measureEnd.x, measureEnd.y, currentImageRef);
+          }
+        }
+
+        return (
+          <div 
+            key={index} 
+            className="relative bg-black/20 rounded-lg overflow-hidden"
+            style={{ 
+              height: 'calc(35vh - 1rem)',
+              maxHeight: 'calc(50vh - 2rem)'
             }}
-          />
-          {isMeasuring && measureStart && measureEnd && activeImageIndex === index && (
-            <svg
-              className="absolute inset-0 pointer-events-none"
-              style={{ 
-                width: '100%', 
-                height: '100%',
-                transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => {
+              setHoveredIndex(null);
+              onMouseLeave?.();
+            }}
+          >
+            <img 
+              ref={el => imageRefs.current[index] = el}
+              src={img}
+              alt={`X-Ray ${startIndex + index + 1}`}
+              className={`w-full h-full object-contain ${showHeatmap ? 'heatmap-filter' : ''}`}
+              onClick={(e) => hoveredIndex === index && onImageClick?.(e)}
+              onMouseDown={(e) => hoveredIndex === index && handleMouseDown(e, index)}
+              onMouseMove={(e) => hoveredIndex === index && onMouseMove?.(e)}
+              onMouseUp={() => hoveredIndex === index && onMouseUp?.()}
+              onWheel={handleWheel}
+              style={{
+                filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                transform: hoveredIndex === index ? 
+                  `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
+                  'none',
+                transition: hoveredIndex === index ? 'none' : 'transform 0.2s ease-out'
               }}
-            >
-              <line
-                x1={`${(measureStart.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
-                y1={`${(measureStart.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
-                x2={`${(measureEnd.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
-                y2={`${(measureEnd.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
-                stroke="#0EA5E9"
-                strokeWidth="2"
-              />
-              <circle
-                cx={`${(measureStart.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
-                cy={`${(measureStart.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
-                r="4"
-                fill="#0EA5E9"
-              />
-              <circle
-                cx={`${(measureEnd.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
-                cy={`${(measureEnd.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
-                r="4"
-                fill="#0EA5E9"
-              />
-              {measureDistance && (
-                <text
-                  x={`${((measureStart.x + measureEnd.x) / (2 * (imageRefs.current[index]?.naturalWidth || 1))) * 100}%`}
-                  y={`${((measureStart.y + measureEnd.y) / (2 * (imageRefs.current[index]?.naturalHeight || 1))) * 100}%`}
+            />
+            {isMeasuring && adjustedStart && adjustedEnd && activeImageIndex === index && (
+              <svg
+                className="absolute inset-0 pointer-events-none"
+                style={{ 
+                  width: '100%', 
+                  height: '100%'
+                }}
+              >
+                <line
+                  x1={`${(adjustedStart.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
+                  y1={`${(adjustedStart.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  x2={`${(adjustedEnd.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
+                  y2={`${(adjustedEnd.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  stroke="#0EA5E9"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx={`${(adjustedStart.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
+                  cy={`${(adjustedStart.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  r="4"
                   fill="#0EA5E9"
-                  fontSize="12"
-                  fontWeight="bold"
-                  dominantBaseline="central"
-                  textAnchor="middle"
-                >
-                  {measureDistance}
-                </text>
-              )}
-            </svg>
-          )}
-          <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-sm text-white">
-            {startIndex + index + 1}
+                />
+                <circle
+                  cx={`${(adjustedEnd.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
+                  cy={`${(adjustedEnd.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  r="4"
+                  fill="#0EA5E9"
+                />
+                {measureDistance && (
+                  <text
+                    x={`${((adjustedStart.x + adjustedEnd.x) / (2 * (currentImageRef?.naturalWidth || 1))) * 100}%`}
+                    y={`${((adjustedStart.y + adjustedEnd.y) / (2 * (currentImageRef?.naturalHeight || 1))) * 100}%`}
+                    fill="#0EA5E9"
+                    fontSize="12"
+                    fontWeight="bold"
+                    dominantBaseline="central"
+                    textAnchor="middle"
+                  >
+                    {measureDistance}
+                  </text>
+                )}
+              </svg>
+            )}
+            <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-sm text-white">
+              {startIndex + index + 1}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
