@@ -119,27 +119,58 @@ const XRayViewer = () => {
   }, []);
 
   const tools = [
-    { icon: <ContrastExposureControl onContrastChange={setContrast} onExposureChange={setExposure} />, name: 'Contrast/Exposure' },
-    { icon: <ZoomIn size={20} className="text-white" />, name: 'Zoom', action: () => {
-      setZoom(prev => Math.min(200, prev + 10));
-      toast({ title: "Zoom increased" });
-    }},
-    { icon: <Ruler size={20} className="text-white" />, name: 'Measure', action: () => {
-      setIsMeasuring(true);
-      toast({ title: "Click two points to measure distance" });
-    }},
-    { icon: <Move size={20} className="text-white" />, name: 'Pan', action: () => {
-      toast({ title: "Pan mode activated" });
-    }},
-    { icon: <Maximize size={20} className="text-white" />, name: 'Fit Screen', action: () => {
-      setZoom(100);
-      setPosition({ x: 0, y: 0 });
-      toast({ title: "Image reset to fit screen" });
-    }},
-    { icon: <Grid2X2 size={20} className="text-white" />, name: 'Grid View', action: () => {
-      setIsGridView(!isGridView);
-      toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
-    }},
+    { 
+      icon: <ContrastExposureControl 
+        onContrastChange={setContrast} 
+        onExposureChange={setExposure} 
+      />, 
+      name: 'Contrast/Exposure' 
+    },
+    { 
+      icon: <ZoomIn size={20} className="text-white" />, 
+      name: 'Zoom', 
+      action: () => {
+        setZoom(prev => Math.min(200, prev + 10));
+        toast({ title: "Zoom increased" });
+      }
+    },
+    { 
+      icon: <Ruler size={20} className="text-white" />, 
+      name: 'Measure', 
+      action: () => {
+        setIsMeasuring(!isMeasuring);
+        if (!isMeasuring) {
+          setMeasureStart(null);
+          setMeasureEnd(null);
+          setMeasureDistance(null);
+          toast({ title: "Click two points to measure distance" });
+        }
+      }
+    },
+    { 
+      icon: <Move size={20} className="text-white" />, 
+      name: 'Pan', 
+      action: () => {
+        toast({ title: "Pan mode activated" });
+      }
+    },
+    { 
+      icon: <Maximize size={20} className="text-white" />, 
+      name: 'Fit Screen', 
+      action: () => {
+        setZoom(100);
+        setPosition({ x: 0, y: 0 });
+        toast({ title: "Image reset to fit screen" });
+      }
+    },
+    { 
+      icon: <Grid2X2 size={20} className="text-white" />, 
+      name: 'Grid View', 
+      action: () => {
+        setIsGridView(!isGridView);
+        toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
+      }
+    },
   ];
 
   return (
@@ -156,7 +187,9 @@ const XRayViewer = () => {
                     variant="ghost"
                     size="icon"
                     onClick={tool.action}
-                    className="hover:bg-medical/20"
+                    className={`hover:bg-medical/20 ${
+                      (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
+                    }`}
                     title={tool.name}
                   >
                     {tool.icon}
@@ -261,6 +294,16 @@ const XRayViewer = () => {
             <div className="text-gray-500 flex flex-col items-center gap-4">
               <Upload size={48} className="text-medical" />
               <span>Upload X-Ray images to begin</span>
+              <label className="cursor-pointer hover:text-medical">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                Click to upload
+              </label>
             </div>
           )}
         </div>
@@ -284,11 +327,11 @@ const XRayViewer = () => {
             <label className="text-sm text-gray-300">AI Model</label>
             <Select value={aiModel} onValueChange={setAiModel}>
               <SelectTrigger className="w-full bg-black/20 text-white">
-                <SelectValue placeholder="Select AI Model" className="text-white" />
+                <SelectValue placeholder="Select AI Model" />
               </SelectTrigger>
-              <SelectContent className="bg-medical-darker">
+              <SelectContent>
                 {aiModels.map((m) => (
-                  <SelectItem key={m} value={m} className="text-white hover:bg-medical/20">
+                  <SelectItem key={m} value={m}>
                     {m}
                   </SelectItem>
                 ))}
@@ -300,11 +343,11 @@ const XRayViewer = () => {
             <label className="text-sm text-gray-300">Viewing Mode</label>
             <Select value={mode} onValueChange={setMode}>
               <SelectTrigger className="w-full bg-black/20 text-white">
-                <SelectValue placeholder="Select mode" className="text-white" />
+                <SelectValue placeholder="Select mode" />
               </SelectTrigger>
-              <SelectContent className="bg-medical-darker">
+              <SelectContent>
                 {modes.map((m) => (
-                  <SelectItem key={m} value={m} className="text-white hover:bg-medical/20">
+                  <SelectItem key={m} value={m}>
                     {m}
                   </SelectItem>
                 ))}
@@ -343,30 +386,6 @@ const XRayViewer = () => {
               onValueChange={([value]) => setNoiseCancellation(value)}
               min={0}
               max={100}
-              step={1}
-              className="py-4"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Contrast: {contrast}%</label>
-            <Slider
-              value={[contrast]}
-              onValueChange={([value]) => setContrast(value)}
-              min={0}
-              max={200}
-              step={1}
-              className="py-4"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Exposure: {exposure}%</label>
-            <Slider
-              value={[exposure]}
-              onValueChange={([value]) => setExposure(value)}
-              min={0}
-              max={200}
               step={1}
               className="py-4"
             />
