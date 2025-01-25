@@ -77,19 +77,20 @@ const XRayViewer = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (isMeasuring) {
+      handleImageClick(e);
+      return;
+    }
+
     if (e.button === 2) {
       e.preventDefault();
       setAdjustStart({ x: e.clientX, y: e.clientY });
     } else if (e.button === 0) {
-      if (isMeasuring) {
-        handleImageClick(e);
-      } else {
-        setIsDragging(true);
-        setDragStart({
-          x: e.clientX - position.x,
-          y: e.clientY - position.y
-        });
-      }
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
     }
   };
 
@@ -163,6 +164,7 @@ const XRayViewer = () => {
                     measureEnd={measureEnd}
                     activeImageIndex={currentImageIndex}
                     isMeasuring={isMeasuring}
+                    measureDistance={measureDistance}
                   />
                 </div>
               ) : (
@@ -177,6 +179,7 @@ const XRayViewer = () => {
                     onMouseMove={handleMouseMove}
                     onMouseUp={() => setIsDragging(false)}
                     onMouseLeave={() => setIsDragging(false)}
+                    onClick={handleImageClick}
                     style={{
                       filter: `contrast(${contrast}%) brightness(${exposure}%)`,
                       transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
@@ -192,36 +195,38 @@ const XRayViewer = () => {
                       }}
                     >
                       <line
-                        x1={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-                        y1={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
-                        x2={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-                        y2={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+                        x1={`${measureStart.x}%`}
+                        y1={`${measureStart.y}%`}
+                        x2={`${measureEnd.x}%`}
+                        y2={`${measureEnd.y}%`}
                         stroke="#0EA5E9"
                         strokeWidth="2"
                       />
                       <circle
-                        cx={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-                        cy={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
+                        cx={`${measureStart.x}%`}
+                        cy={`${measureStart.y}%`}
                         r="4"
                         fill="#0EA5E9"
                       />
                       <circle
-                        cx={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-                        cy={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+                        cx={`${measureEnd.x}%`}
+                        cy={`${measureEnd.y}%`}
                         r="4"
                         fill="#0EA5E9"
                       />
-                      <text
-                        x={`${((measureStart.x + measureEnd.x) / (2 * imageRef.current!.naturalWidth)) * 100}%`}
-                        y={`${((measureStart.y + measureEnd.y) / (2 * imageRef.current!.naturalHeight)) * 100}%`}
-                        fill="#0EA5E9"
-                        fontSize="12"
-                        fontWeight="bold"
-                        dominantBaseline="central"
-                        textAnchor="middle"
-                      >
-                        {measureDistance}px
-                      </text>
+                      {measureDistance && (
+                        <text
+                          x={`${(measureStart.x + measureEnd.x) / 2}%`}
+                          y={`${(measureStart.y + measureEnd.y) / 2}%`}
+                          fill="#0EA5E9"
+                          fontSize="12"
+                          fontWeight="bold"
+                          dominantBaseline="central"
+                          textAnchor="middle"
+                        >
+                          {measureDistance}px
+                        </text>
+                      )}
                     </svg>
                   )}
                 </div>
