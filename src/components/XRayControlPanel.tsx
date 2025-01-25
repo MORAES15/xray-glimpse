@@ -10,6 +10,12 @@ interface XRayControlPanelProps {
   setAiModel: (value: string) => void;
   mode: string;
   setMode: (value: string) => void;
+  sensitivity: number;
+  setSensitivity: (value: number) => void;
+  focus: number;
+  setFocus: (value: number) => void;
+  noiseCancellation: number;
+  setNoiseCancellation: (value: number) => void;
   zoom: number;
   setZoom: (value: number) => void;
   showHeatmap: boolean;
@@ -38,6 +44,12 @@ const XRayControlPanel = ({
   setAiModel,
   mode,
   setMode,
+  sensitivity,
+  setSensitivity,
+  focus,
+  setFocus,
+  noiseCancellation,
+  setNoiseCancellation,
   zoom,
   setZoom,
   showHeatmap,
@@ -86,6 +98,42 @@ const XRayControlPanel = ({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-gray-300">Sensitivity: {sensitivity}%</label>
+          <Slider
+            value={[sensitivity]}
+            onValueChange={([value]) => setSensitivity(value)}
+            min={0}
+            max={100}
+            step={1}
+            className="py-4"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-gray-300">Focus: {focus}%</label>
+          <Slider
+            value={[focus]}
+            onValueChange={([value]) => setFocus(value)}
+            min={0}
+            max={100}
+            step={1}
+            className="py-4"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-gray-300">Noise Cancellation: {noiseCancellation}%</label>
+          <Slider
+            value={[noiseCancellation]}
+            onValueChange={([value]) => setNoiseCancellation(value)}
+            min={0}
+            max={100}
+            step={1}
+            className="py-4"
+          />
         </div>
 
         <div className="space-y-2">

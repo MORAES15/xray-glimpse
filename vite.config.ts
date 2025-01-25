@@ -2,15 +2,18 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+import type { ConfigEnv, UserConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }: ConfigEnv): UserConfig => ({
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
     react(),
-    process.env.NODE_ENV === 'development' && componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -18,6 +21,11 @@ export default defineConfig({
     },
   },
   css: {
-    postcss: './postcss.config.js'
+    postcss: {
+      plugins: [
+        tailwindcss(),
+        autoprefixer(),
+      ],
+    },
   },
-});
+}));
