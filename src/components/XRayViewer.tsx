@@ -174,13 +174,14 @@ const XRayGrid = ({ images, startIndex }: { images: string[]; startIndex: number
       {images.slice(startIndex, startIndex + 4).map((img, index) => (
         <div 
           key={index}
-          className="relative aspect-square bg-black/20 rounded-lg overflow-hidden"
+          className="relative aspect-square bg-black/20 rounded-lg overflow-hidden group"
         >
           <img
             src={img}
             alt={`Grid item ${index}`}
-            className="object-contain w-full h-full p-2"
+            className="object-cover w-full h-full transform transition-transform duration-300 hover:scale-105"
           />
+          <div className="absolute inset-0 border-2 border-medical/20 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       ))}
     </div>

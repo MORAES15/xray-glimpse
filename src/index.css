@@ -88,7 +88,15 @@
 }
 
 @layer utilities {
-  .aspect-square {
-    aspect-ratio: 1 / 1;
+  .object-cover {
+    object-fit: cover;
+  }
+  .object-contain {
+    object-fit: contain;
+  }
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 }
