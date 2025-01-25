@@ -37,11 +37,11 @@ const XRayGrid = ({
     e.preventDefault();
     const delta = -Math.sign(e.deltaY);
     const newZoom = Math.min(200, Math.max(50, zoom + delta * 10));
-    // Update parent zoom through onMouseMove
+    // Update parent zoom through onMouseMove but only simulate left button
     const fakeEvent = new MouseEvent('mousemove', {
       clientX: e.clientX,
       clientY: e.clientY,
-      buttons: 2 // Simulate right button
+      buttons: 1 // Simulate left button instead of right button
     }) as unknown as React.MouseEvent<HTMLImageElement>;
     onMouseMove?.(fakeEvent);
   };
@@ -70,7 +70,7 @@ const XRayGrid = ({
             onMouseLeave?.();
           }}
         >
-          <img
+          <img 
             src={img}
             alt={`X-Ray ${startIndex + index + 1}`}
             className={`w-full h-full object-contain ${showHeatmap ? 'heatmap-filter' : ''}`}
