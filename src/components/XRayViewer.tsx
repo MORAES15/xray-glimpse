@@ -7,7 +7,7 @@ import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
-import { initializeDicomLoader, isDicomImage } from '../utils/dicomLoader';
+import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -35,24 +35,55 @@ const XRayViewer = () => {
   }, []);
 
   const handleImagesUploaded = (newImages: string[]) => {
-    if (Array.isArray(newImages)) {
+    if (Array.isArray(newImages) && newImages.length > 0) {
       setImages(prev => [...prev, ...newImages]);
-      if (images.length === 0) {
-        setCurrentImageIndex(0);
-      }
+      setCurrentImageIndex(images.length); // Set to the index of the newly added image
     }
   };
 
-  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      for (const file of Array.from(files)) {
-        const imageUrl = URL.createObjectURL(file);
-        newImages.push(imageUrl);
+    if (!files || files.length === 0) return;
+
+    const newImages: string[] = [];
+    const { toast } = useToast();
+
+    for (const file of Array.from(files)) {
+      try {
+        if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
+          const imageId = await loadDicomFile(file);
+          if (imageId) {
+            newImages.push(imageId);
+            toast({
+              title: "DICOM file loaded",
+              description: `Successfully loaded ${file.name}`,
+            });
+          }
+        } else if (file.type.startsWith('image/')) {
+          const imageUrl = URL.createObjectURL(file);
+          newImages.push(imageUrl);
+          toast({
+            title: "Image loaded",
+            description: `Successfully loaded ${file.name}`,
+          });
+        } else {
+          toast({
+            title: "Invalid file type",
+            description: "Please upload only image or DICOM files",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error loading file:', error);
+        toast({
+          title: "Error loading file",
+          description: `Failed to load ${file.name}`,
+          variant: "destructive"
+        });
       }
-      handleImagesUploaded(newImages);
     }
+
+    handleImagesUploaded(newImages);
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -130,6 +161,10 @@ const XRayViewer = () => {
                     contrast={contrast}
                     exposure={exposure}
                     onImageClick={handleImageClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={() => setIsDragging(false)}
+                    onMouseLeave={() => setIsDragging(false)}
                     showHeatmap={showHeatmap}
                     zoom={zoom}
                     position={position}
