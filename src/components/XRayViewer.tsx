@@ -5,14 +5,13 @@ import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
+import { useXRayImage } from '@/hooks/useXRayImage';
+import { useMeasurement } from '@/hooks/useMeasurement';
 
 const XRayViewer = () => {
   const { toast } = useToast();
   const [aiModel, setAiModel] = useState('');
   const [mode, setMode] = useState('');
-  const [sensitivity, setSensitivity] = useState(50);
-  const [focus, setFocus] = useState(50);
-  const [noiseCancellation, setNoiseCancellation] = useState(50);
   const [images, setImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [contrast, setContrast] = useState(100);
@@ -22,14 +21,20 @@ const XRayViewer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null);
-  const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
-  const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
   const [adjustStart, setAdjustStart] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
+
+  const {
+    isMeasuring,
+    setIsMeasuring,
+    measureStart,
+    measureEnd,
+    measureDistance,
+    handleMeasureClick,
+    resetMeasurement
+  } = useMeasurement();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -44,13 +49,6 @@ const XRayViewer = () => {
         description: "X-Ray images have been loaded successfully.",
       });
     }
-  };
-
-  const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    if (!start || !end) return "0";
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    return Math.sqrt(dx * dx + dy * dy).toFixed(2);
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -105,10 +103,7 @@ const XRayViewer = () => {
 
   const handleClickOutside = (e: MouseEvent) => {
     if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
-      setIsMeasuring(false);
-      setMeasureStart(null);
-      setMeasureEnd(null);
-      setMeasureDistance(null);
+      resetMeasurement();
     }
   };
 
@@ -251,12 +246,6 @@ const XRayViewer = () => {
         setAiModel={setAiModel}
         mode={mode}
         setMode={setMode}
-        sensitivity={sensitivity}
-        setSensitivity={setSensitivity}
-        focus={focus}
-        setFocus={setFocus}
-        noiseCancellation={noiseCancellation}
-        setNoiseCancellation={setNoiseCancellation}
         zoom={zoom}
         setZoom={setZoom}
         showHeatmap={showHeatmap}
