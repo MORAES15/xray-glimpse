@@ -7,6 +7,7 @@ import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import { initializeDicomLoader, loadDicomFile, isDicomImage } from '../utils/dicomLoader';
+import * as cornerstone from 'cornerstone-core';
 
 const XRayViewer = () => {
   const { toast } = useToast();
@@ -48,9 +49,9 @@ const XRayViewer = () => {
             const imageId = await loadDicomFile(file);
             if (imageId) {
               newImages.push(imageId);
-              // Initialize cornerstone viewport for DICOM
               const element = document.querySelector('.dicom-image') as HTMLElement;
               if (element) {
+                await cornerstone.enable(element);
                 await cornerstone.displayImage(element, await cornerstone.loadImage(imageId));
               }
               toast({
@@ -328,3 +329,4 @@ const XRayViewer = () => {
 };
 
 export default XRayViewer;
+
