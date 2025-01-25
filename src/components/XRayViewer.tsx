@@ -23,6 +23,11 @@ const XRayViewer = () => {
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
+  const [aiModel, setAiModel] = useState('General Purpose X-Ray AI');
+  const [mode, setMode] = useState('Standard');
+  const [sensitivity, setSensitivity] = useState(50);
+  const [focus, setFocus] = useState(50);
+  const [noiseCancellation, setNoiseCancellation] = useState(50);
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -30,9 +35,11 @@ const XRayViewer = () => {
   }, []);
 
   const handleImagesUploaded = (newImages: string[]) => {
-    setImages(prev => [...prev, ...newImages]);
-    if (images.length === 0) {
-      setCurrentImageIndex(0);
+    if (Array.isArray(newImages)) {
+      setImages(prev => [...prev, ...newImages]);
+      if (images.length === 0) {
+        setCurrentImageIndex(0);
+      }
     }
   };
 
@@ -221,6 +228,16 @@ const XRayViewer = () => {
       </div>
 
       <XRayControlPanel
+        aiModel={aiModel}
+        setAiModel={setAiModel}
+        mode={mode}
+        setMode={setMode}
+        sensitivity={sensitivity}
+        setSensitivity={setSensitivity}
+        focus={focus}
+        setFocus={setFocus}
+        noiseCancellation={noiseCancellation}
+        setNoiseCancellation={setNoiseCancellation}
         zoom={zoom}
         setZoom={setZoom}
         showHeatmap={showHeatmap}
