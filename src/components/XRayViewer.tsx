@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Upload } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
+import XRayEmptyState from './XRayEmptyState';
+import XRaySingleView from './XRaySingleView';
 import { useXRayImage } from '@/hooks/useXRayImage';
 import { useMeasurement } from '@/hooks/useMeasurement';
 
@@ -23,7 +24,6 @@ const XRayViewer = () => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isGridView, setIsGridView] = useState(false);
   const [adjustStart, setAdjustStart] = useState({ x: 0, y: 0 });
-  const imageRef = useRef<HTMLImageElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -55,31 +55,13 @@ const XRayViewer = () => {
     }
   };
 
-  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!isMeasuring || !imageRef.current) return;
-
-    const rect = imageRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * imageRef.current.naturalWidth;
-    const y = ((e.clientY - rect.top) / rect.height) * imageRef.current.naturalHeight;
-
-    if (!measureStart) {
-      setMeasureStart({ x, y });
-      toast({ title: "Start point set" });
-    } else {
-      setMeasureEnd({ x, y });
-      const distance = calculateDistance(measureStart, { x, y });
-      setMeasureDistance(distance);
-      toast({ title: `Distance: ${distance}px` });
-    }
-  };
-
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
     if (e.button === 2) {
       e.preventDefault();
       setAdjustStart({ x: e.clientX, y: e.clientY });
     } else if (e.button === 0) {
       if (isMeasuring) {
-        handleImageClick(e);
+        handleMeasureClick(e);
       } else {
         setIsDragging(true);
         setDragStart({
@@ -97,7 +79,7 @@ const XRayViewer = () => {
       setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
       setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
       setAdjustStart({ x: e.clientX, y: e.clientY });
-    } else if (isDragging && e.buttons === 0) {
+    } else if (isDragging && e.buttons === 1) {
       setPosition({
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
@@ -111,7 +93,7 @@ const XRayViewer = () => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -145,7 +127,6 @@ const XRayViewer = () => {
                     startIndex={Math.floor(currentImageIndex / 4) * 4}
                     contrast={contrast}
                     exposure={exposure}
-                    onImageClick={handleImageClick}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={() => setIsDragging(false)}
@@ -160,65 +141,23 @@ const XRayViewer = () => {
                   />
                 </div>
               ) : (
-                <div className="relative w-full h-[80vh] flex items-center justify-center">
-                  <img 
-                    ref={imageRef}
-                    src={images[currentImageIndex]} 
-                    alt="X-Ray"
-                    className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
-                    onContextMenu={(e) => e.preventDefault()}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
-                    style={{
-                      filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                    }}
-                  />
-                  {measureStart && measureEnd && (
-                    <svg
-                      className="absolute inset-0 pointer-events-none"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                      }}
-                    >
-                      <line
-                        x1={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-                        y1={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
-                        x2={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-                        y2={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
-                        stroke="#0EA5E9"
-                        strokeWidth="2"
-                      />
-                      <circle
-                        cx={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-                        cy={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
-                        r="4"
-                        fill="#0EA5E9"
-                      />
-                      <circle
-                        cx={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-                        cy={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
-                        r="4"
-                        fill="#0EA5E9"
-                      />
-                      <text
-                        x={`${((measureStart.x + measureEnd.x) / (2 * imageRef.current!.naturalWidth)) * 100}%`}
-                        y={`${((measureStart.y + measureEnd.y) / (2 * imageRef.current!.naturalHeight)) * 100}%`}
-                        fill="#0EA5E9"
-                        fontSize="12"
-                        fontWeight="bold"
-                        dominantBaseline="central"
-                        textAnchor="middle"
-                      >
-                        {measureDistance}px
-                      </text>
-                    </svg>
-                  )}
-                </div>
+                <XRaySingleView
+                  image={images[currentImageIndex]}
+                  contrast={contrast}
+                  exposure={exposure}
+                  showHeatmap={showHeatmap}
+                  zoom={zoom}
+                  position={position}
+                  isDragging={isDragging}
+                  isMeasuring={isMeasuring}
+                  measureStart={measureStart}
+                  measureEnd={measureEnd}
+                  measureDistance={measureDistance}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={() => setIsDragging(false)}
+                  onMouseLeave={() => setIsDragging(false)}
+                />
               )}
               {images.length > 0 && (
                 <div className="absolute right-0 top-0 bottom-0 w-24">
@@ -231,20 +170,7 @@ const XRayViewer = () => {
               )}
             </>
           ) : (
-            <div className="text-gray-500 flex flex-col items-center gap-4">
-              <Upload size={48} className="text-medical" />
-              <span>Upload X-Ray images to begin</span>
-              <label className="cursor-pointer hover:text-medical">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                Click to upload
-              </label>
-            </div>
+            <XRayEmptyState onFileUpload={handleFileUpload} />
           )}
         </div>
       </div>
