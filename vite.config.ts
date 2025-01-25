@@ -2,9 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import tailwindcss from 'tailwindcss';
-import autoprefixer from 'autoprefixer';
-import type { ConfigEnv, UserConfig } from 'vite';
 
 export default defineConfig({
   server: {
@@ -21,11 +18,6 @@ export default defineConfig({
     },
   },
   css: {
-    postcss: {
-      plugins: [
-        tailwindcss(),
-        autoprefixer(),
-      ],
-    },
+    postcss: './postcss.config.js'
   },
 });
