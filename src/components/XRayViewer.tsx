@@ -53,12 +53,17 @@ const XRayViewer = () => {
     return Math.sqrt(dx * dx + dy * dy).toFixed(2);
   };
 
-  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!isMeasuring || !imageRef.current) return;
+  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
+    if (!isMeasuring) return;
 
-    const rect = imageRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * imageRef.current.naturalWidth;
-    const y = ((e.clientY - rect.top) / rect.height) * imageRef.current.naturalHeight;
+    const target = e.target as HTMLImageElement;
+    const rect = target.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    if (isGridView && typeof clickedImageIndex === 'number') {
+      setCurrentImageIndex(clickedImageIndex);
+    }
 
     if (!measureStart) {
       setMeasureStart({ x, y });
@@ -154,6 +159,10 @@ const XRayViewer = () => {
                     showHeatmap={showHeatmap}
                     zoom={zoom}
                     position={position}
+                    measureStart={measureStart}
+                    measureEnd={measureEnd}
+                    activeImageIndex={currentImageIndex}
+                    isMeasuring={isMeasuring}
                   />
                 </div>
               ) : (
