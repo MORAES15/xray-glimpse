@@ -17,6 +17,7 @@ interface XRayGridProps {
   measureEnd?: { x: number; y: number } | null;
   activeImageIndex?: number;
   isMeasuring?: boolean;
+  measureDistance?: string | null;
 }
 
 const XRayGrid = ({
@@ -35,7 +36,8 @@ const XRayGrid = ({
   measureStart,
   measureEnd,
   activeImageIndex,
-  isMeasuring
+  isMeasuring,
+  measureDistance
 }: XRayGridProps) => {
   const gridImages = images.slice(startIndex, startIndex + 4);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -77,37 +79,51 @@ const XRayGrid = ({
               }}
             />
             {isActiveImage && isMeasuring && measureStart && measureEnd && (
-              <svg
-                className="absolute inset-0 pointer-events-none"
-                style={{ 
-                  width: '100%', 
-                  height: '100%',
-                  transform: hoveredIndex === index ? 
-                    `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
-                    'none'
-                }}
-              >
-                <line
-                  x1={`${measureStart.x}%`}
-                  y1={`${measureStart.y}%`}
-                  x2={`${measureEnd.x}%`}
-                  y2={`${measureEnd.y}%`}
-                  stroke="#0EA5E9"
-                  strokeWidth="2"
-                />
-                <circle
-                  cx={`${measureStart.x}%`}
-                  cy={`${measureStart.y}%`}
-                  r="4"
-                  fill="#0EA5E9"
-                />
-                <circle
-                  cx={`${measureEnd.x}%`}
-                  cy={`${measureEnd.y}%`}
-                  r="4"
-                  fill="#0EA5E9"
-                />
-              </svg>
+              <>
+                <svg
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    transform: hoveredIndex === index ? 
+                      `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
+                      'none'
+                  }}
+                >
+                  <line
+                    x1={`${measureStart.x}%`}
+                    y1={`${measureStart.y}%`}
+                    x2={`${measureEnd.x}%`}
+                    y2={`${measureEnd.y}%`}
+                    stroke="#0EA5E9"
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx={`${measureStart.x}%`}
+                    cy={`${measureStart.y}%`}
+                    r="4"
+                    fill="#0EA5E9"
+                  />
+                  <circle
+                    cx={`${measureEnd.x}%`}
+                    cy={`${measureEnd.y}%`}
+                    r="4"
+                    fill="#0EA5E9"
+                  />
+                </svg>
+                {measureDistance && (
+                  <div 
+                    className="absolute bg-black/60 px-2 py-1 rounded text-sm text-white"
+                    style={{
+                      left: `${(measureStart.x + measureEnd.x) / 2}%`,
+                      top: `${(measureStart.y + measureEnd.y) / 2}%`,
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  >
+                    {measureDistance}px
+                  </div>
+                )}
+              </>
             )}
             <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-sm text-white">
               {currentImageIndex + 1}
