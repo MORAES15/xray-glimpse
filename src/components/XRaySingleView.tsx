@@ -36,6 +36,26 @@ const XRaySingleView = ({
 }: XRaySingleViewProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
+  const getAdjustedCoordinates = (x: number, y: number) => {
+    if (!imageRef.current) return { x: 0, y: 0 };
+    const rect = imageRef.current.getBoundingClientRect();
+    const scaleX = imageRef.current.naturalWidth / rect.width;
+    const scaleY = imageRef.current.naturalHeight / rect.height;
+    
+    return {
+      x: ((x - rect.left) * scaleX) / (zoom / 100),
+      y: ((y - rect.top) * scaleY) / (zoom / 100)
+    };
+  };
+
+  let adjustedStart = measureStart;
+  let adjustedEnd = measureEnd;
+
+  if (imageRef.current && measureStart && measureEnd) {
+    adjustedStart = getAdjustedCoordinates(measureStart.x, measureStart.y);
+    adjustedEnd = getAdjustedCoordinates(measureEnd.x, measureEnd.y);
+  }
+
   return (
     <div className="relative w-full h-[80vh] flex items-center justify-center">
       <img 
@@ -53,7 +73,7 @@ const XRaySingleView = ({
           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
         }}
       />
-      {measureStart && measureEnd && (
+      {isMeasuring && measureStart && measureEnd && imageRef.current && (
         <svg
           className="absolute inset-0 pointer-events-none"
           style={{ 
@@ -63,36 +83,38 @@ const XRaySingleView = ({
           }}
         >
           <line
-            x1={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-            y1={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
-            x2={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-            y2={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+            x1={`${(adjustedStart.x / imageRef.current.naturalWidth) * 100}%`}
+            y1={`${(adjustedStart.y / imageRef.current.naturalHeight) * 100}%`}
+            x2={`${(adjustedEnd.x / imageRef.current.naturalWidth) * 100}%`}
+            y2={`${(adjustedEnd.y / imageRef.current.naturalHeight) * 100}%`}
             stroke="#0EA5E9"
             strokeWidth="2"
           />
           <circle
-            cx={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-            cy={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
+            cx={`${(adjustedStart.x / imageRef.current.naturalWidth) * 100}%`}
+            cy={`${(adjustedStart.y / imageRef.current.naturalHeight) * 100}%`}
             r="4"
             fill="#0EA5E9"
           />
           <circle
-            cx={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-            cy={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+            cx={`${(adjustedEnd.x / imageRef.current.naturalWidth) * 100}%`}
+            cy={`${(adjustedEnd.y / imageRef.current.naturalHeight) * 100}%`}
             r="4"
             fill="#0EA5E9"
           />
-          <text
-            x={`${((measureStart.x + measureEnd.x) / (2 * imageRef.current!.naturalWidth)) * 100}%`}
-            y={`${((measureStart.y + measureEnd.y) / (2 * imageRef.current!.naturalHeight)) * 100}%`}
-            fill="#0EA5E9"
-            fontSize="12"
-            fontWeight="bold"
-            dominantBaseline="central"
-            textAnchor="middle"
-          >
-            {measureDistance}px
-          </text>
+          {measureDistance && (
+            <text
+              x={`${((adjustedStart.x + adjustedEnd.x) / (2 * imageRef.current.naturalWidth)) * 100}%`}
+              y={`${((adjustedStart.y + adjustedEnd.y) / (2 * imageRef.current.naturalHeight)) * 100}%`}
+              fill="#0EA5E9"
+              fontSize="12"
+              fontWeight="bold"
+              dominantBaseline="central"
+              textAnchor="middle"
+            >
+              {measureDistance}
+            </text>
+          )}
         </svg>
       )}
     </div>
