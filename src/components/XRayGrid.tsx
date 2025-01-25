@@ -13,6 +13,10 @@ interface XRayGridProps {
   showHeatmap?: boolean;
   zoom: number;
   position: { x: number; y: number };
+  measureStart?: { x: number; y: number } | null;
+  measureEnd?: { x: number; y: number } | null;
+  measureDistance?: string | null;
+  isMeasuring?: boolean;
 }
 
 const XRayGrid = ({
@@ -27,11 +31,16 @@ const XRayGrid = ({
   onMouseLeave,
   showHeatmap,
   zoom,
-  position
+  position,
+  measureStart,
+  measureEnd,
+  measureDistance,
+  isMeasuring
 }: XRayGridProps) => {
   const gridImages = images.slice(startIndex, startIndex + 4);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
 
   const handleWheel = (e: React.WheelEvent<HTMLImageElement>) => {
     e.preventDefault();
@@ -70,6 +79,7 @@ const XRayGrid = ({
           }}
         >
           <img 
+            ref={el => imageRefs.current[index] = el}
             src={img}
             alt={`X-Ray ${startIndex + index + 1}`}
             className={`w-full h-full object-contain ${showHeatmap ? 'heatmap-filter' : ''}`}
@@ -86,6 +96,50 @@ const XRayGrid = ({
               transition: hoveredIndex === index ? 'none' : 'transform 0.2s ease-out'
             }}
           />
+          {isMeasuring && measureStart && measureEnd && hoveredIndex === index && (
+            <svg
+              className="absolute inset-0 pointer-events-none"
+              style={{ 
+                width: '100%', 
+                height: '100%',
+                transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+              }}
+            >
+              <line
+                x1={`${(measureStart.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
+                y1={`${(measureStart.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
+                x2={`${(measureEnd.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
+                y2={`${(measureEnd.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
+                stroke="#0EA5E9"
+                strokeWidth="2"
+              />
+              <circle
+                cx={`${(measureStart.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
+                cy={`${(measureStart.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
+                r="4"
+                fill="#0EA5E9"
+              />
+              <circle
+                cx={`${(measureEnd.x / (imageRefs.current[index]?.naturalWidth || 1)) * 100}%`}
+                cy={`${(measureEnd.y / (imageRefs.current[index]?.naturalHeight || 1)) * 100}%`}
+                r="4"
+                fill="#0EA5E9"
+              />
+              {measureDistance && (
+                <text
+                  x={`${((measureStart.x + measureEnd.x) / (2 * (imageRefs.current[index]?.naturalWidth || 1))) * 100}%`}
+                  y={`${((measureStart.y + measureEnd.y) / (2 * (imageRefs.current[index]?.naturalHeight || 1))) * 100}%`}
+                  fill="#0EA5E9"
+                  fontSize="12"
+                  fontWeight="bold"
+                  dominantBaseline="central"
+                  textAnchor="middle"
+                >
+                  {measureDistance}px
+                </text>
+              )}
+            </svg>
+          )}
           <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-sm text-white">
             {startIndex + index + 1}
           </div>
