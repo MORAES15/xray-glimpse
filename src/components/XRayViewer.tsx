@@ -48,6 +48,11 @@ const XRayViewer = () => {
             const imageId = await loadDicomFile(file);
             if (imageId) {
               newImages.push(imageId);
+              // Initialize cornerstone viewport for DICOM
+              const element = document.querySelector('.dicom-image') as HTMLElement;
+              if (element) {
+                await cornerstone.displayImage(element, await cornerstone.loadImage(imageId));
+              }
               toast({
                 title: "DICOM file loaded",
                 description: `Successfully loaded ${file.name}`,
@@ -201,22 +206,32 @@ const XRayViewer = () => {
                 </div>
               ) : (
                 <div className="relative w-full h-[80vh] flex items-center justify-center">
-                  <img 
-                    ref={imageRef}
-                    src={images[currentImageIndex]} 
-                    alt="X-Ray"
-                    className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
-                    onContextMenu={(e) => e.preventDefault()}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
-                    onClick={handleImageClick}
-                    style={{
-                      filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                    }}
-                  />
+                  {isDicomImage(images[currentImageIndex]) ? (
+                    <div 
+                      className="dicom-image w-full h-full"
+                      style={{
+                        width: '100%',
+                        height: '100%'
+                      }}
+                    />
+                  ) : (
+                    <img 
+                      ref={imageRef}
+                      src={images[currentImageIndex]} 
+                      alt="X-Ray"
+                      className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
+                      onContextMenu={(e) => e.preventDefault()}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={() => setIsDragging(false)}
+                      onMouseLeave={() => setIsDragging(false)}
+                      onClick={handleImageClick}
+                      style={{
+                        filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                      }}
+                    />
+                  )}
                   {measureStart && measureEnd && (
                     <svg
                       className="absolute inset-0 pointer-events-none"
