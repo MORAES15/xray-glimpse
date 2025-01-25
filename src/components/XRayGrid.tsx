@@ -69,9 +69,13 @@ const XRayGrid = ({
     const scaleX = imageRef.naturalWidth / rect.width;
     const scaleY = imageRef.naturalHeight / rect.height;
     
+    // Calculate the actual position considering zoom and pan
+    const adjustedX = ((x - rect.left) * scaleX) / (zoom / 100);
+    const adjustedY = ((y - rect.top) * scaleY) / (zoom / 100);
+    
     return {
-      x: (x - position.x) * scaleX / (zoom / 100),
-      y: (y - position.y) * scaleY / (zoom / 100)
+      x: adjustedX,
+      y: adjustedY
     };
   };
   
@@ -88,10 +92,18 @@ const XRayGrid = ({
 
         if (currentImageRef && activeImageIndex === index) {
           if (measureStart) {
-            adjustedStart = getAdjustedCoordinates(measureStart.x, measureStart.y, currentImageRef);
+            const rect = currentImageRef.getBoundingClientRect();
+            adjustedStart = {
+              x: ((measureStart.x - rect.left) * (currentImageRef.naturalWidth / rect.width)) / (zoom / 100),
+              y: ((measureStart.y - rect.top) * (currentImageRef.naturalHeight / rect.height)) / (zoom / 100)
+            };
           }
           if (measureEnd) {
-            adjustedEnd = getAdjustedCoordinates(measureEnd.x, measureEnd.y, currentImageRef);
+            const rect = currentImageRef.getBoundingClientRect();
+            adjustedEnd = {
+              x: ((measureEnd.x - rect.left) * (currentImageRef.naturalWidth / rect.width)) / (zoom / 100),
+              y: ((measureEnd.y - rect.top) * (currentImageRef.naturalHeight / rect.height)) / (zoom / 100)
+            };
           }
         }
 
@@ -124,7 +136,8 @@ const XRayGrid = ({
                 transform: hoveredIndex === index ? 
                   `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
                   'none',
-                transition: hoveredIndex === index ? 'none' : 'transform 0.2s ease-out'
+                transition: hoveredIndex === index ? 'none' : 'transform 0.2s ease-out',
+                transformOrigin: 'center'
               }}
             />
             {isMeasuring && adjustedStart && adjustedEnd && activeImageIndex === index && (
@@ -132,33 +145,37 @@ const XRayGrid = ({
                 className="absolute inset-0 pointer-events-none"
                 style={{ 
                   width: '100%', 
-                  height: '100%'
+                  height: '100%',
+                  transform: hoveredIndex === index ? 
+                    `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
+                    'none',
+                  transformOrigin: 'center'
                 }}
               >
                 <line
-                  x1={`${(adjustedStart.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
-                  y1={`${(adjustedStart.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
-                  x2={`${(adjustedEnd.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
-                  y2={`${(adjustedEnd.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  x1={`${(adjustedStart.x / currentImageRef!.naturalWidth) * 100}%`}
+                  y1={`${(adjustedStart.y / currentImageRef!.naturalHeight) * 100}%`}
+                  x2={`${(adjustedEnd.x / currentImageRef!.naturalWidth) * 100}%`}
+                  y2={`${(adjustedEnd.y / currentImageRef!.naturalHeight) * 100}%`}
                   stroke="#0EA5E9"
                   strokeWidth="2"
                 />
                 <circle
-                  cx={`${(adjustedStart.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
-                  cy={`${(adjustedStart.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  cx={`${(adjustedStart.x / currentImageRef!.naturalWidth) * 100}%`}
+                  cy={`${(adjustedStart.y / currentImageRef!.naturalHeight) * 100}%`}
                   r="4"
                   fill="#0EA5E9"
                 />
                 <circle
-                  cx={`${(adjustedEnd.x / (currentImageRef?.naturalWidth || 1)) * 100}%`}
-                  cy={`${(adjustedEnd.y / (currentImageRef?.naturalHeight || 1)) * 100}%`}
+                  cx={`${(adjustedEnd.x / currentImageRef!.naturalWidth) * 100}%`}
+                  cy={`${(adjustedEnd.y / currentImageRef!.naturalHeight) * 100}%`}
                   r="4"
                   fill="#0EA5E9"
                 />
                 {measureDistance && (
                   <text
-                    x={`${((adjustedStart.x + adjustedEnd.x) / (2 * (currentImageRef?.naturalWidth || 1))) * 100}%`}
-                    y={`${((adjustedStart.y + adjustedEnd.y) / (2 * (currentImageRef?.naturalHeight || 1))) * 100}%`}
+                    x={`${((adjustedStart.x + adjustedEnd.x) / (2 * currentImageRef!.naturalWidth)) * 100}%`}
+                    y={`${((adjustedStart.y + adjustedEnd.y) / (2 * currentImageRef!.naturalHeight)) * 100}%`}
                     fill="#0EA5E9"
                     fontSize="12"
                     fontWeight="bold"
