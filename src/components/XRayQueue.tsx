@@ -10,6 +10,14 @@ interface XRayQueueProps {
 }
 
 const XRayQueue = ({ images, currentIndex, onSelect }: XRayQueueProps) => {
+  const handleWheel = (event: React.WheelEvent) => {
+    if (event.deltaY > 0) {
+      onSelect(Math.min(images.length - 1, currentIndex + 1));
+    } else {
+      onSelect(Math.max(0, currentIndex - 1));
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 w-24 glass-dark rounded-lg p-2">
       <Button
@@ -22,7 +30,7 @@ const XRayQueue = ({ images, currentIndex, onSelect }: XRayQueueProps) => {
         <ArrowLeft size={20} className="text-white" />
       </Button>
       
-      <ScrollArea className="h-[60vh]">
+      <ScrollArea className="h-[60vh]" onWheel={handleWheel}>
         <div className="flex flex-col gap-2">
           {images.map((img, index) => (
             <div

@@ -122,9 +122,9 @@ const XRayViewer = () => {
   ];
 
   return (
-    <div className="flex h-screen p-4 gap-4">
-      <div className="flex flex-1 gap-4">
-        <div className="flex gap-4">
+    <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
+      <div className="flex flex-1 gap-4 flex-col md:flex-row">
+        <div className="flex gap-4 flex-row md:flex-col">
           <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
             {tools.map((tool) => (
               <Button
@@ -236,7 +236,7 @@ const XRayViewer = () => {
         </div>
       </div>
 
-      <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn">
+      <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn hidden md:block">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white">Controls</h2>
           <Button
@@ -367,12 +367,13 @@ const XRayViewer = () => {
           <input
             type="file"
             accept="image/*"
+            multiple
             onChange={handleFileUpload}
             className="hidden"
           />
           <div className="flex items-center justify-center p-4 border-2 border-dashed border-medical/50 rounded-lg cursor-pointer hover:bg-medical/10 transition-colors">
             <Upload className="w-5 h-5 mr-2 text-medical" />
-            <span className="text-sm font-medium">Upload X-Ray Image</span>
+            <span className="text-sm font-medium">Upload X-Ray Images</span>
           </div>
         </label>
       </div>
