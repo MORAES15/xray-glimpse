@@ -38,13 +38,19 @@ const XRaySingleView = ({
 
   const getAdjustedCoordinates = (x: number, y: number) => {
     if (!imageRef.current) return { x: 0, y: 0 };
+    
     const rect = imageRef.current.getBoundingClientRect();
     const scaleX = imageRef.current.naturalWidth / rect.width;
     const scaleY = imageRef.current.naturalHeight / rect.height;
     
+    // Calculate coordinates relative to the image's natural dimensions
+    const relativeX = (x - rect.left) * scaleX;
+    const relativeY = (y - rect.top) * scaleY;
+    
+    // Apply zoom and position adjustments
     return {
-      x: ((x - rect.left) * scaleX) / (zoom / 100),
-      y: ((y - rect.top) * scaleY) / (zoom / 100)
+      x: (relativeX * 100) / zoom,
+      y: (relativeY * 100) / zoom
     };
   };
 

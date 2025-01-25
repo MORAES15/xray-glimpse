@@ -69,13 +69,14 @@ const XRayGrid = ({
     const scaleX = imageRef.naturalWidth / rect.width;
     const scaleY = imageRef.naturalHeight / rect.height;
     
-    // Calculate the actual position considering zoom and pan
-    const adjustedX = ((x - rect.left) * scaleX) / (zoom / 100);
-    const adjustedY = ((y - rect.top) * scaleY) / (zoom / 100);
+    // Calculate coordinates relative to the image's natural dimensions
+    const relativeX = (x - rect.left) * scaleX;
+    const relativeY = (y - rect.top) * scaleY;
     
+    // Apply zoom and position adjustments
     return {
-      x: adjustedX,
-      y: adjustedY
+      x: (relativeX * 100) / zoom,
+      y: (relativeY * 100) / zoom
     };
   };
   
@@ -92,18 +93,10 @@ const XRayGrid = ({
 
         if (currentImageRef && activeImageIndex === index) {
           if (measureStart) {
-            const rect = currentImageRef.getBoundingClientRect();
-            adjustedStart = {
-              x: ((measureStart.x - rect.left) * (currentImageRef.naturalWidth / rect.width)) / (zoom / 100),
-              y: ((measureStart.y - rect.top) * (currentImageRef.naturalHeight / rect.height)) / (zoom / 100)
-            };
+            adjustedStart = getAdjustedCoordinates(measureStart.x, measureStart.y, currentImageRef);
           }
           if (measureEnd) {
-            const rect = currentImageRef.getBoundingClientRect();
-            adjustedEnd = {
-              x: ((measureEnd.x - rect.left) * (currentImageRef.naturalWidth / rect.width)) / (zoom / 100),
-              y: ((measureEnd.y - rect.top) * (currentImageRef.naturalHeight / rect.height)) / (zoom / 100)
-            };
+            adjustedEnd = getAdjustedCoordinates(measureEnd.x, measureEnd.y, currentImageRef);
           }
         }
 
