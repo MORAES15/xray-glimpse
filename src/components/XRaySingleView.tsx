@@ -43,9 +43,13 @@ const XRaySingleView = ({
     const scaleX = imageRef.current.naturalWidth / rect.width;
     const scaleY = imageRef.current.naturalHeight / rect.height;
     
+    // Adjust for position offset and zoom
+    const adjustedX = (x - rect.left - position.x) / (zoom / 100);
+    const adjustedY = (y - rect.top - position.y) / (zoom / 100);
+    
     return {
-      x: (x - rect.left) * scaleX,
-      y: (y - rect.top) * scaleY
+      x: adjustedX * scaleX,
+      y: adjustedY * scaleY
     };
   };
 

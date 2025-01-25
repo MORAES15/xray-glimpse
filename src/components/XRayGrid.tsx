@@ -69,9 +69,13 @@ const XRayGrid = ({
     const scaleX = imageRef.naturalWidth / rect.width;
     const scaleY = imageRef.naturalHeight / rect.height;
     
+    // Adjust for position offset and zoom when hovered
+    const adjustedX = (x - rect.left - (hoveredIndex !== null ? position.x : 0)) / (hoveredIndex !== null ? zoom / 100 : 1);
+    const adjustedY = (y - rect.top - (hoveredIndex !== null ? position.y : 0)) / (hoveredIndex !== null ? zoom / 100 : 1);
+    
     return {
-      x: (x - rect.left) * scaleX,
-      y: (y - rect.top) * scaleY
+      x: adjustedX * scaleX,
+      y: adjustedY * scaleY
     };
   };
   
