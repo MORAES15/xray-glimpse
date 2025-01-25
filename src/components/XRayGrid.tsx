@@ -69,14 +69,9 @@ const XRayGrid = ({
     const scaleX = imageRef.naturalWidth / rect.width;
     const scaleY = imageRef.naturalHeight / rect.height;
     
-    // Calculate coordinates relative to the image's natural dimensions
-    const relativeX = (x - rect.left) * scaleX;
-    const relativeY = (y - rect.top) * scaleY;
-    
-    // Apply zoom and position adjustments
     return {
-      x: (relativeX * 100) / zoom,
-      y: (relativeY * 100) / zoom
+      x: (x - rect.left) * scaleX,
+      y: (y - rect.top) * scaleY
     };
   };
   
@@ -133,7 +128,7 @@ const XRayGrid = ({
                 transformOrigin: 'center'
               }}
             />
-            {isMeasuring && adjustedStart && adjustedEnd && activeImageIndex === index && (
+            {isMeasuring && adjustedStart && adjustedEnd && activeImageIndex === index && currentImageRef && (
               <svg
                 className="absolute inset-0 pointer-events-none"
                 style={{ 
@@ -146,29 +141,29 @@ const XRayGrid = ({
                 }}
               >
                 <line
-                  x1={`${(adjustedStart.x / currentImageRef!.naturalWidth) * 100}%`}
-                  y1={`${(adjustedStart.y / currentImageRef!.naturalHeight) * 100}%`}
-                  x2={`${(adjustedEnd.x / currentImageRef!.naturalWidth) * 100}%`}
-                  y2={`${(adjustedEnd.y / currentImageRef!.naturalHeight) * 100}%`}
+                  x1={`${(adjustedStart.x / currentImageRef.naturalWidth) * 100}%`}
+                  y1={`${(adjustedStart.y / currentImageRef.naturalHeight) * 100}%`}
+                  x2={`${(adjustedEnd.x / currentImageRef.naturalWidth) * 100}%`}
+                  y2={`${(adjustedEnd.y / currentImageRef.naturalHeight) * 100}%`}
                   stroke="#0EA5E9"
                   strokeWidth="2"
                 />
                 <circle
-                  cx={`${(adjustedStart.x / currentImageRef!.naturalWidth) * 100}%`}
-                  cy={`${(adjustedStart.y / currentImageRef!.naturalHeight) * 100}%`}
+                  cx={`${(adjustedStart.x / currentImageRef.naturalWidth) * 100}%`}
+                  cy={`${(adjustedStart.y / currentImageRef.naturalHeight) * 100}%`}
                   r="4"
                   fill="#0EA5E9"
                 />
                 <circle
-                  cx={`${(adjustedEnd.x / currentImageRef!.naturalWidth) * 100}%`}
-                  cy={`${(adjustedEnd.y / currentImageRef!.naturalHeight) * 100}%`}
+                  cx={`${(adjustedEnd.x / currentImageRef.naturalWidth) * 100}%`}
+                  cy={`${(adjustedEnd.y / currentImageRef.naturalHeight) * 100}%`}
                   r="4"
                   fill="#0EA5E9"
                 />
                 {measureDistance && (
                   <text
-                    x={`${((adjustedStart.x + adjustedEnd.x) / (2 * currentImageRef!.naturalWidth)) * 100}%`}
-                    y={`${((adjustedStart.y + adjustedEnd.y) / (2 * currentImageRef!.naturalHeight)) * 100}%`}
+                    x={`${((adjustedStart.x + adjustedEnd.x) / (2 * currentImageRef.naturalWidth)) * 100}%`}
+                    y={`${((adjustedStart.y + adjustedEnd.y) / (2 * currentImageRef.naturalHeight)) * 100}%`}
                     fill="#0EA5E9"
                     fontSize="12"
                     fontWeight="bold"
