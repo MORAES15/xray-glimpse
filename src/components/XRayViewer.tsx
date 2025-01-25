@@ -76,7 +76,6 @@ const XRayViewer = () => {
     }
   };
 
-  
   const [scale, setScale] = useState({ x: 1, y: 1 });
 
   useEffect(() => {
@@ -168,26 +167,6 @@ const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
   }
 };
 
-const XRayGrid = ({ images, startIndex }: { images: string[]; startIndex: number }) => {
-  return (
-    <div className="grid grid-cols-2 gap-4 w-full h-full p-4">
-      {images.slice(startIndex, startIndex + 4).map((img, index) => (
-        <div 
-          key={index}
-          className="relative aspect-square bg-black/20 rounded-lg overflow-hidden group"
-        >
-          <img
-            src={img}
-            alt={`Grid item ${index}`}
-            className="object-cover w-full h-full transform transition-transform duration-300 hover:scale-105"
-          />
-          <div className="absolute inset-0 border-2 border-medical/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-      ))}
-    </div>
-  );
-};
-
 const handleClickOutside = (e: MouseEvent) => {
   if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
     setIsMeasuring(false);
@@ -268,7 +247,6 @@ const handleClickOutside = (e: MouseEvent) => {
   return (
     <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
-        {/* Seção de ferramentas corrigida */}
         <div className="flex gap-4 flex-row md:flex-col">
           <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
             {tools.map((tool, index) => (
@@ -293,72 +271,82 @@ const handleClickOutside = (e: MouseEvent) => {
           {images.length > 0 ? (
             <>
               {isGridView ? (
-  <div className="w-full h-[80vh] overflow-auto">
-    <XRayGrid
-      images={images}
-      startIndex={Math.floor(currentImageIndex / 4) * 4}
-    />
-  </div>
-) : (
-  <div className="relative w-full h-[80vh] flex items-center justify-center">
+                <div className="w-full h-[80vh] overflow-auto">
+                  <XRayGrid
+                    images={images}
+                    startIndex={Math.floor(currentImageIndex / 4) * 4}
+                    contrast={contrast}
+                    exposure={exposure}
+                    onImageClick={handleImageClick}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={() => setIsDragging(false)}
+                    onMouseLeave={() => setIsDragging(false)}
+                    showHeatmap={showHeatmap}
+                    zoom={zoom}
+                    position={position}
+                  />
+                </div>
+              ) : (
+                <div className="relative w-full h-[80vh] flex items-center justify-center">
                   <img 
-  ref={imageRef}
-  src={images[currentImageIndex]} 
-  alt="X-Ray"
-  className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
-  onContextMenu={(e) => e.preventDefault()}
-  onMouseDown={handleMouseDown}
-  onMouseMove={handleMouseMove}
-  onMouseUp={() => setIsDragging(false)}
-  onMouseLeave={() => setIsDragging(false)}
-  style={{
-    filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-  }}
-/>
-{measureStart && measureEnd && (
-  <svg
-    className="absolute inset-0 pointer-events-none"
-    style={{ 
-      width: '100%', 
-      height: '100%',
-      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-    }}
-  >
-    <line
-      x1={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-      y1={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
-      x2={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-      y2={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
-      stroke="#0EA5E9"
-      strokeWidth="2"
-    />
-    <circle
-      cx={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
-      cy={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
-      r="4"
-      fill="#0EA5E9"
-    />
-    <circle
-      cx={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
-      cy={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
-      r="4"
-      fill="#0EA5E9"
-    />
-    <text
-      x={`${((measureStart.x + measureEnd.x) / (2 * imageRef.current!.naturalWidth)) * 100}%`}
-      y={`${((measureStart.y + measureEnd.y) / (2 * imageRef.current!.naturalHeight)) * 100}%`}
-      fill="#0EA5E9"
-      fontSize="12"
-      fontWeight="bold"
-      dominantBaseline="central"
-      textAnchor="middle"
-    >
-      {measureDistance}px
-    </text>
-  </svg>
-)} 
-</div>
+                    ref={imageRef}
+                    src={images[currentImageIndex]} 
+                    alt="X-Ray"
+                    className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={() => setIsDragging(false)}
+                    onMouseLeave={() => setIsDragging(false)}
+                    style={{
+                      filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                    }}
+                  />
+                  {measureStart && measureEnd && (
+                    <svg
+                      className="absolute inset-0 pointer-events-none"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                      }}
+                    >
+                      <line
+                        x1={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
+                        y1={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
+                        x2={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
+                        y2={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+                        stroke="#0EA5E9"
+                        strokeWidth="2"
+                      />
+                      <circle
+                        cx={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
+                        cy={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
+                        r="4"
+                        fill="#0EA5E9"
+                      />
+                      <circle
+                        cx={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
+                        cy={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+                        r="4"
+                        fill="#0EA5E9"
+                      />
+                      <text
+                        x={`${((measureStart.x + measureEnd.x) / (2 * imageRef.current!.naturalWidth)) * 100}%`}
+                        y={`${((measureStart.y + measureEnd.y) / (2 * imageRef.current!.naturalHeight)) * 100}%`}
+                        fill="#0EA5E9"
+                        fontSize="12"
+                        fontWeight="bold"
+                        dominantBaseline="central"
+                        textAnchor="middle"
+                      >
+                        {measureDistance}px
+                      </text>
+                    </svg>
+                  )} 
+                </div>
               )}
               {images.length > 0 && (
                 <div className="absolute right-0 top-0 bottom-0 w-24">
