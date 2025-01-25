@@ -29,6 +29,7 @@ const XRayViewer = () => {
   const [focus, setFocus] = useState(50);
   const [noiseCancellation, setNoiseCancellation] = useState(50);
   const imageRef = useRef<HTMLImageElement>(null);
+  const { toast } = useToast(); // Move useToast to component level
 
   useEffect(() => {
     initializeDicomLoader();
@@ -46,7 +47,6 @@ const XRayViewer = () => {
     if (!files || files.length === 0) return;
 
     const newImages: string[] = [];
-    const { toast } = useToast();
 
     for (const file of Array.from(files)) {
       try {
@@ -260,6 +260,7 @@ const XRayViewer = () => {
             <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
           )}
         </div>
+
       </div>
 
       <XRayControlPanel
