@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from './ui/button';
-import { ZoomIn, Ruler, Maximize, Move, Grid2X2 } from 'lucide-react';
+import { Ruler, Move, Grid2X2 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import { useToast } from './ui/use-toast';
 
@@ -38,16 +38,8 @@ const XRayToolbar = ({
       name: 'Contrast/Exposure',
       action: () => {
         toast({ 
-          title: "Click and drag with RIGHT button to adjust contrast/exposure"
+          title: "Use RIGHT mouse button and drag to adjust contrast/exposure"
         });
-      }
-    },
-    { 
-      icon: <ZoomIn size={20} className="text-white" />, 
-      name: 'Zoom', 
-      action: () => {
-        setZoom((prev: number) => Math.min(200, prev + 10));
-        toast({ title: "Zoom increased" });
       }
     },
     { 
@@ -66,15 +58,6 @@ const XRayToolbar = ({
       action: () => {
         setIsDragging(false);
         toast({ title: "Pan mode activated" });
-      }
-    },
-    { 
-      icon: <Maximize size={20} className="text-white" />, 
-      name: 'Fit Screen', 
-      action: () => {
-        setZoom(100);
-        setPosition({ x: 0, y: 0 });
-        toast({ title: "Image reset to fit screen" });
       }
     },
     { 

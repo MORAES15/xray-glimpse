@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface XRayGridProps {
   images: string[];
@@ -31,9 +31,31 @@ const XRayGrid = ({
 }: XRayGridProps) => {
   const gridImages = images.slice(startIndex, startIndex + 4);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleWheel = (e: React.WheelEvent<HTMLImageElement>) => {
+    e.preventDefault();
+    const delta = -Math.sign(e.deltaY);
+    const newZoom = Math.min(200, Math.max(50, zoom + delta * 10));
+    // Update parent zoom through onMouseMove
+    const fakeEvent = new MouseEvent('mousemove', {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      buttons: 2 // Simulate right button
+    }) as unknown as React.MouseEvent<HTMLImageElement>;
+    onMouseMove?.(fakeEvent);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full h-full p-2 md:p-4">
+    <div 
+      className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full h-full p-2 md:p-4"
+      ref={containerRef}
+      onContextMenu={handleContextMenu}
+    >
       {gridImages.map((img, index) => (
         <div 
           key={index} 
@@ -56,6 +78,7 @@ const XRayGrid = ({
             onMouseDown={(e) => hoveredIndex === index && onMouseDown?.(e)}
             onMouseMove={(e) => hoveredIndex === index && onMouseMove?.(e)}
             onMouseUp={() => hoveredIndex === index && onMouseUp?.()}
+            onWheel={handleWheel}
             style={{
               filter: `contrast(${contrast}%) brightness(${exposure}%)`,
               transform: hoveredIndex === index ? 
