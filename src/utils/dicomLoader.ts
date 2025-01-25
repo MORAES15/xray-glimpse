@@ -50,6 +50,10 @@ export const loadDicomFile = async (file: File): Promise<string> => {
   });
 };
 
+export const isDicomImage = (imageId: string): boolean => {
+  return cornerstone.imageCache.imageCache[imageId]?.image !== undefined;
+};
+
 export const getDicomMetadata = (imageId: string) => {
   const image = cornerstone.imageCache.imageCache[imageId];
   if (!image) return null;

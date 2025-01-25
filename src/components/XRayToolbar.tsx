@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { ZoomIn, Ruler, Maximize, Move, Grid2X2 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import { useToast } from './ui/use-toast';
+import { isDicomImage } from '../utils/dicomLoader';
 
 interface XRayToolbarProps {
   isMeasuring: boolean;
@@ -14,6 +15,7 @@ interface XRayToolbarProps {
   setIsGridView: (value: boolean) => void;
   setContrast: (value: number) => void;
   setExposure: (value: number) => void;
+  currentImageId?: string;
 }
 
 const XRayToolbar = ({
@@ -25,20 +27,26 @@ const XRayToolbar = ({
   isGridView,
   setIsGridView,
   setContrast,
-  setExposure
+  setExposure,
+  currentImageId
 }: XRayToolbarProps) => {
   const { toast } = useToast();
+  const isDicom = currentImageId ? isDicomImage(currentImageId) : false;
 
   const tools = [
     { 
       icon: <ContrastExposureControl 
         onContrastChange={setContrast} 
-        onExposureChange={setExposure} 
+        onExposureChange={setExposure}
+        isDicom={isDicom}
+        imageId={currentImageId}
       />, 
-      name: 'Contrast/Exposure',
+      name: isDicom ? 'Window/Level' : 'Contrast/Exposure',
       action: () => {
         toast({ 
-          title: "Click and drag with RIGHT button to adjust contrast/exposure"
+          title: isDicom ? 
+            "Click and drag to adjust window/level" :
+            "Click and drag with RIGHT button to adjust contrast/exposure"
         });
       }
     },
