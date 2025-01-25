@@ -57,7 +57,6 @@ const XRayViewer = () => {
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
-  const [isAdjusting, setIsAdjusting] = useState(false);
   const [adjustStart, setAdjustStart] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -77,59 +76,125 @@ const XRayViewer = () => {
     }
   };
 
+  
+  const [scale, setScale] = useState({ x: 1, y: 1 });
+
+  useEffect(() => {
+    const updateScale = () => {
+        if (imageRef.current && imageRef.current.naturalWidth > 0) {
+            const rect = imageRef.current.getBoundingClientRect();
+            setScale({
+                x: imageRef.current.naturalWidth / rect.width,
+                y: imageRef.current.naturalHeight / rect.height
+            });
+        }
+    };
+
+    if (imageRef.current) {
+        imageRef.current.addEventListener('load', updateScale); // Atualiza quando a imagem carrega
+        updateScale(); // Atualiza imediatamente se a imagem já estiver carregada
+    }
+
+    return () => {
+        if (imageRef.current) {
+            imageRef.current.removeEventListener('load', updateScale);
+        }
+    };
+}, [zoom, images, currentImageIndex]); // Atualiza quando o zoom ou imagem muda
   const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    if (!imageRef.current) return "0";
-    const rect = imageRef.current.getBoundingClientRect();
-    const scale = imageRef.current.naturalWidth / rect.width;
-    const dx = (end.x - start.x) * scale;
-    const dy = (end.y - start.y) * scale;
+    if (!start || !end) return "0";
+
+    // Cálculo simples da distância entre os dois pontos
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+
     return Math.sqrt(dx * dx + dy * dy).toFixed(2);
-  };
+};
 
-  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!isMeasuring) return;
+const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+  if (!isMeasuring || !imageRef.current) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  const rect = imageRef.current.getBoundingClientRect();
+  const naturalWidth = imageRef.current.naturalWidth;
+  const naturalHeight = imageRef.current.naturalHeight;
 
-    if (!measureStart) {
+  // Coordenadas relativas à imagem ORIGINAL (sem zoom/posição)
+  const x = ((e.clientX - rect.left) / rect.width) * naturalWidth;
+  const y = ((e.clientY - rect.top) / rect.height) * naturalHeight;
+
+  if (!measureStart) {
       setMeasureStart({ x, y });
       toast({ title: "Start point set" });
-    } else {
+  } else {
       setMeasureEnd({ x, y });
       const distance = calculateDistance(measureStart, { x, y });
       setMeasureDistance(distance);
       toast({ title: `Distance: ${distance}px` });
-    }
-  };
+  }
+};
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isAdjusting) {
-      const deltaX = e.clientX - adjustStart.x;
-      const deltaY = e.clientY - adjustStart.y;
-      
-      setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
-      setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
-      
-      setAdjustStart({ x: e.clientX, y: e.clientY });
-    } else if (isDragging && !isMeasuring) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
+const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
+  if (e.button === 2) { // Botão direito para ajustes
+    e.preventDefault();
+    setAdjustStart({ x: e.clientX, y: e.clientY });
+  } else if (e.button === 0) { // Botão esquerdo
+    if (isMeasuring) {
+      // Chama handleImageClick manualmente para medição
+      handleImageClick(e);
+    } else {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
       });
     }
-  };
+  }
+};
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
-      setIsMeasuring(false);
-      setMeasureStart(null);
-      setMeasureEnd(null);
-      setMeasureDistance(null);
-      setIsAdjusting(false);
-    }
-  };
+const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+  if (e.buttons === 2) { // Apenas botão direito pressionado
+    const deltaX = e.clientX - adjustStart.x;
+    const deltaY = e.clientY - adjustStart.y;
+    
+    setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
+    setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
+    
+    setAdjustStart({ x: e.clientX, y: e.clientY });
+  } else if (isDragging && e.buttons === 0) {
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
+  }
+};
+
+const XRayGrid = ({ images, startIndex }: { images: string[]; startIndex: number }) => {
+  return (
+    <div className="grid grid-cols-2 gap-4 w-full h-full p-4">
+      {images.slice(startIndex, startIndex + 4).map((img, index) => (
+        <div 
+          key={index}
+          className="relative aspect-square bg-black/20 rounded-lg overflow-hidden"
+        >
+          <img
+            src={img}
+            alt={`Grid item ${index}`}
+            className="object-contain w-full h-full p-2"
+          />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
+    setIsMeasuring(false);
+    setMeasureStart(null);
+    setMeasureEnd(null);
+    setMeasureDistance(null);
+  }
+};
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
@@ -146,10 +211,9 @@ const XRayViewer = () => {
       />, 
       name: 'Contrast/Exposure',
       action: () => {
-        setIsAdjusting(!isAdjusting);
-        if (!isAdjusting) {
-          toast({ title: "Click and drag to adjust contrast (horizontal) and exposure (vertical)" });
-        }
+        toast({ 
+          title: "Clique e arraste com o botão DIREITO para ajustar contraste/exposição"
+        });
       }
     },
     { 
@@ -203,37 +267,22 @@ const XRayViewer = () => {
   return (
     <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
+        {/* Seção de ferramentas corrigida */}
         <div className="flex gap-4 flex-row md:flex-col">
           <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
             {tools.map((tool, index) => (
               <div key={index}>
-                {typeof tool.icon === 'object' && React.isValidElement(tool.icon) ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={tool.action}
-                    className={`hover:bg-medical/20 ${
-                      (tool.name === 'Measure' && isMeasuring) || 
-                      (tool.name === 'Contrast/Exposure' && isAdjusting) ? 
-                      'bg-medical/20' : ''
-                    }`}
-                    title={tool.name}
-                  >
-                    {tool.icon}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={tool.action}
-                    className={`hover:bg-medical/20 ${
-                      (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
-                    }`}
-                    title={tool.name}
-                  >
-                    {tool.icon}
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={tool.action}
+                  className={`hover:bg-medical/20 ${
+                    (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
+                  }`}
+                  title={tool.name}
+                >
+                  {tool.icon}
+                </Button>
               </div>
             ))}
           </div>
@@ -243,86 +292,72 @@ const XRayViewer = () => {
           {images.length > 0 ? (
             <>
               {isGridView ? (
-                <XRayGrid
-                  images={images}
-                  startIndex={Math.floor(currentImageIndex / 4) * 4}
-                />
-              ) : (
-                <div className="relative w-full h-[80vh] flex items-center justify-center">
+  <div className="w-full h-[80vh] overflow-auto">
+    <XRayGrid
+      images={images}
+      startIndex={Math.floor(currentImageIndex / 4) * 4}
+    />
+  </div>
+) : (
+  <div className="relative w-full h-[80vh] flex items-center justify-center">
                   <img 
-                    ref={imageRef}
-                    src={images[currentImageIndex]} 
-                    alt="X-Ray"
-                    className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
-                    onClick={handleImageClick}
-                    onMouseDown={(e) => {
-                      if (isAdjusting) {
-                        setAdjustStart({ x: e.clientX, y: e.clientY });
-                      } else if (!isMeasuring) {
-                        setIsDragging(true);
-                        setDragStart({
-                          x: e.clientX - position.x,
-                          y: e.clientY - position.y
-                        });
-                      }
-                    }}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={() => {
-                      setIsDragging(false);
-                      if (isAdjusting) {
-                        setIsAdjusting(false);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      setIsDragging(false);
-                      if (isAdjusting) {
-                        setIsAdjusting(false);
-                      }
-                    }}
-                    style={{
-                      filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                    }}
-                  />
-                  {measureStart && (
-                    <div 
-                      className="absolute w-2 h-2 bg-medical rounded-full pointer-events-none"
-                      style={{ 
-                        left: measureStart.x - 4,
-                        top: measureStart.y - 4
-                      }}
-                    />
-                  )}
-                  {measureStart && measureEnd && (
-                    <>
-                      <svg
-                        className="absolute inset-0 pointer-events-none"
-                        style={{ width: '100%', height: '100%' }}
-                      >
-                        <line
-                          x1={measureStart.x}
-                          y1={measureStart.y}
-                          x2={measureEnd.x}
-                          y2={measureEnd.y}
-                          stroke="#0EA5E9"
-                          strokeWidth="2"
-                        />
-                      </svg>
-                      {measureDistance && (
-                        <div 
-                          className="absolute bg-medical text-white px-2 py-1 rounded text-sm pointer-events-none"
-                          style={{
-                            left: (measureStart.x + measureEnd.x) / 2,
-                            top: (measureStart.y + measureEnd.y) / 2,
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        >
-                          {measureDistance}px
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
+  ref={imageRef}
+  src={images[currentImageIndex]} 
+  alt="X-Ray"
+  className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
+  onContextMenu={(e) => e.preventDefault()}
+  onMouseDown={handleMouseDown}
+  onMouseMove={handleMouseMove}
+  onMouseUp={() => setIsDragging(false)}
+  onMouseLeave={() => setIsDragging(false)}
+  style={{
+    filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+  }}
+/>
+{measureStart && measureEnd && (
+  <svg
+    className="absolute inset-0 pointer-events-none"
+    style={{ 
+      width: '100%', 
+      height: '100%',
+      transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+    }}
+  >
+    <line
+      x1={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
+      y1={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
+      x2={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
+      y2={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+      stroke="#0EA5E9"
+      strokeWidth="2"
+    />
+    <circle
+      cx={`${(measureStart.x / imageRef.current!.naturalWidth) * 100}%`}
+      cy={`${(measureStart.y / imageRef.current!.naturalHeight) * 100}%`}
+      r="4"
+      fill="#0EA5E9"
+    />
+    <circle
+      cx={`${(measureEnd.x / imageRef.current!.naturalWidth) * 100}%`}
+      cy={`${(measureEnd.y / imageRef.current!.naturalHeight) * 100}%`}
+      r="4"
+      fill="#0EA5E9"
+    />
+    <text
+      x={`${((measureStart.x + measureEnd.x) / (2 * imageRef.current!.naturalWidth)) * 100}%`}
+      y={`${((measureStart.y + measureEnd.y) / (2 * imageRef.current!.naturalHeight)) * 100}%`}
+      fill="#0EA5E9"
+      fontSize="12"
+      fontWeight="bold"
+      dominantBaseline="central"
+      textAnchor="middle"
+    >
+      {measureDistance}px
+    </text>
+  </svg>
+)} 
+</div>
               )}
               {images.length > 0 && (
                 <div className="absolute right-0 top-0 bottom-0 w-24">
@@ -360,9 +395,8 @@ const XRayViewer = () => {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="hover:bg-medical/20"
           >
-            {theme === 'dark' ? <Sun size={20} className="text-white" /> : <Moon size={20} className="text-white" />}
+            {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
         </div>
 
@@ -375,9 +409,7 @@ const XRayViewer = () => {
               </SelectTrigger>
               <SelectContent>
                 {aiModels.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
