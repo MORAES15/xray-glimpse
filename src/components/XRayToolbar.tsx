@@ -7,7 +7,7 @@ import { useToast } from './ui/use-toast';
 interface XRayToolbarProps {
   isMeasuring: boolean;
   setIsMeasuring: (value: boolean) => void;
-  setZoom: (value: number) => void;
+  setZoom: React.Dispatch<React.SetStateAction<number>>;
   setPosition: (value: { x: number; y: number }) => void;
   setIsDragging: (value: boolean) => void;
   isGridView: boolean;
@@ -46,7 +46,7 @@ const XRayToolbar = ({
       icon: <ZoomIn size={20} className="text-white" />, 
       name: 'Zoom', 
       action: () => {
-        setZoom(prev => Math.min(200, prev + 10));
+        setZoom((prev: number) => Math.min(200, prev + 10));
         toast({ title: "Zoom increased" });
       }
     },

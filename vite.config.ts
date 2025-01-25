@@ -6,14 +6,14 @@ import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 import type { ConfigEnv, UserConfig } from 'vite';
 
-export default defineConfig(({ mode }: ConfigEnv): UserConfig => ({
+export default defineConfig({
   server: {
     host: "::",
     port: 8080,
   },
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
+    process.env.NODE_ENV === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -28,4 +28,4 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => ({
       ],
     },
   },
-}));
+});
