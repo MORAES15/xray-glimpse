@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
@@ -33,6 +33,18 @@ const XRayViewer = () => {
     setImages(prev => [...prev, ...newImages]);
     if (images.length === 0) {
       setCurrentImageIndex(0);
+    }
+  };
+
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newImages: string[] = [];
+      for (const file of Array.from(files)) {
+        const imageUrl = URL.createObjectURL(file);
+        newImages.push(imageUrl);
+      }
+      handleImagesUploaded(newImages);
     }
   };
 
@@ -213,7 +225,7 @@ const XRayViewer = () => {
         setZoom={setZoom}
         showHeatmap={showHeatmap}
         setShowHeatmap={setShowHeatmap}
-        onFileUpload={handleImagesUploaded}
+        onFileUpload={handleFileUpload}
       />
     </div>
   );
