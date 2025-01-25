@@ -18,7 +18,7 @@ import XRayGrid from './XRayGrid';
 import ContrastExposureControl from './ContrastExposureControl';
 import { useTheme } from 'next-themes';
 
-// Define the missing arrays
+// Define the arrays
 const aiModels = [
   'General Purpose X-Ray AI',
   'Chest X-Ray Specialist',
@@ -57,6 +57,8 @@ const XRayViewer = () => {
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
+  const [isAdjusting, setIsAdjusting] = useState(false);
+  const [adjustStart, setAdjustStart] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
 
@@ -102,12 +104,30 @@ const XRayViewer = () => {
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (isAdjusting) {
+      const deltaX = e.clientX - adjustStart.x;
+      const deltaY = e.clientY - adjustStart.y;
+      
+      setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
+      setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
+      
+      setAdjustStart({ x: e.clientX, y: e.clientY });
+    } else if (isDragging && !isMeasuring) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
   const handleClickOutside = (e: MouseEvent) => {
     if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
       setIsMeasuring(false);
       setMeasureStart(null);
       setMeasureEnd(null);
       setMeasureDistance(null);
+      setIsAdjusting(false);
     }
   };
 
@@ -124,7 +144,13 @@ const XRayViewer = () => {
         onContrastChange={setContrast} 
         onExposureChange={setExposure} 
       />, 
-      name: 'Contrast/Exposure' 
+      name: 'Contrast/Exposure',
+      action: () => {
+        setIsAdjusting(!isAdjusting);
+        if (!isAdjusting) {
+          toast({ title: "Click and drag to adjust contrast (horizontal) and exposure (vertical)" });
+        }
+      }
     },
     { 
       icon: <ZoomIn size={20} className="text-white" />, 
@@ -151,6 +177,7 @@ const XRayViewer = () => {
       icon: <Move size={20} className="text-white" />, 
       name: 'Pan', 
       action: () => {
+        setIsDragging(false);
         toast({ title: "Pan mode activated" });
       }
     },
@@ -181,7 +208,19 @@ const XRayViewer = () => {
             {tools.map((tool, index) => (
               <div key={index}>
                 {typeof tool.icon === 'object' && React.isValidElement(tool.icon) ? (
-                  tool.icon
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={tool.action}
+                    className={`hover:bg-medical/20 ${
+                      (tool.name === 'Measure' && isMeasuring) || 
+                      (tool.name === 'Contrast/Exposure' && isAdjusting) ? 
+                      'bg-medical/20' : ''
+                    }`}
+                    title={tool.name}
+                  >
+                    {tool.icon}
+                  </Button>
                 ) : (
                   <Button
                     variant="ghost"
@@ -214,10 +253,12 @@ const XRayViewer = () => {
                     ref={imageRef}
                     src={images[currentImageIndex]} 
                     alt="X-Ray"
-                    className="h-full w-full object-contain cursor-move"
+                    className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
                     onClick={handleImageClick}
                     onMouseDown={(e) => {
-                      if (!isMeasuring) {
+                      if (isAdjusting) {
+                        setAdjustStart({ x: e.clientX, y: e.clientY });
+                      } else if (!isMeasuring) {
                         setIsDragging(true);
                         setDragStart({
                           x: e.clientX - position.x,
@@ -225,16 +266,19 @@ const XRayViewer = () => {
                         });
                       }
                     }}
-                    onMouseMove={(e) => {
-                      if (isDragging && !isMeasuring) {
-                        setPosition({
-                          x: e.clientX - dragStart.x,
-                          y: e.clientY - dragStart.y
-                        });
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={() => {
+                      setIsDragging(false);
+                      if (isAdjusting) {
+                        setIsAdjusting(false);
                       }
                     }}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
+                    onMouseLeave={() => {
+                      setIsDragging(false);
+                      if (isAdjusting) {
+                        setIsAdjusting(false);
+                      }
+                    }}
                     style={{
                       filter: `contrast(${contrast}%) brightness(${exposure}%)`,
                       transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
