@@ -44,13 +44,21 @@ const XRayViewer = () => {
       
       for (const file of Array.from(files)) {
         try {
-          if (file.type === 'application/dicom' || file.name.endsWith('.dcm')) {
+          if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
             const imageId = await loadDicomFile(file);
-            newImages.push(imageId);
+            if (imageId) {
+              newImages.push(imageId);
+              toast({
+                title: "DICOM file loaded",
+                description: `Successfully loaded ${file.name}`,
+              });
+            }
           } else {
-            newImages.push(URL.createObjectURL(file));
+            const imageUrl = URL.createObjectURL(file);
+            newImages.push(imageUrl);
           }
         } catch (error) {
+          console.error('Error loading file:', error);
           toast({
             title: "Error loading file",
             description: `Failed to load ${file.name}. Make sure it's a valid image or DICOM file.`,
@@ -63,11 +71,6 @@ const XRayViewer = () => {
       if (images.length === 0) {
         setCurrentImageIndex(0);
       }
-      
-      toast({
-        title: `${newImages.length} file(s) uploaded`,
-        description: "Images have been loaded successfully.",
-      });
     }
   };
 
@@ -243,20 +246,19 @@ const XRayViewer = () => {
                         r="4"
                         fill="#0EA5E9"
                       />
-                      {measureDistance && (
-                        <text
-                          x={`${(measureStart.x + measureEnd.x) / 2}%`}
-                          y={`${(measureStart.y + measureEnd.y) / 2}%`}
-                          fill="#0EA5E9"
-                          fontSize="12"
-                          fontWeight="bold"
-                          dominantBaseline="central"
-                          textAnchor="middle"
-                        >
-                          {measureDistance}px
-                        </text>
-                      )}
                     </svg>
+                  )}
+                  {measureDistance && (
+                    <div 
+                      className="absolute bg-black/60 px-2 py-1 rounded text-sm text-white"
+                      style={{
+                        left: `${(measureStart?.x || 0 + (measureEnd?.x || 0)) / 2}%`,
+                        top: `${(measureStart?.y || 0 + (measureEnd?.y || 0)) / 2}%`,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    >
+                      {measureDistance}px
+                    </div>
                   )}
                 </div>
               )}
@@ -277,7 +279,7 @@ const XRayViewer = () => {
               <label className="cursor-pointer hover:text-medical">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.dcm"
                   multiple
                   onChange={handleFileUpload}
                   className="hidden"
