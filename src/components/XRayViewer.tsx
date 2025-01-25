@@ -1,21 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Upload } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
 import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
-import { initializeDicomLoader, loadDicomFile, isDicomImage } from '../utils/dicomLoader';
-import * as cornerstone from 'cornerstone-core';
+import ImageUploadHandler from './ImageUploadHandler';
+import DicomViewer from './DicomViewer';
+import { initializeDicomLoader, isDicomImage } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
-  const { toast } = useToast();
-  const [aiModel, setAiModel] = useState('');
-  const [mode, setMode] = useState('');
-  const [sensitivity, setSensitivity] = useState(50);
-  const [focus, setFocus] = useState(50);
-  const [noiseCancellation, setNoiseCancellation] = useState(50);
   const [images, setImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [contrast, setContrast] = useState(100);
@@ -23,60 +17,21 @@ const XRayViewer = () => {
   const [zoom, setZoom] = useState(100);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null);
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
-  const [adjustStart, setAdjustStart] = useState({ x: 0, y: 0 });
-  const imageRef = useRef<HTMLImageElement>(null);
-  const viewerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     initializeDicomLoader();
   }, []);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      
-      for (const file of Array.from(files)) {
-        try {
-          if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
-            const imageId = await loadDicomFile(file);
-            if (imageId) {
-              newImages.push(imageId);
-              const element = document.querySelector('.dicom-image') as HTMLElement;
-              if (element) {
-                await cornerstone.enable(element);
-                await cornerstone.displayImage(element, await cornerstone.loadImage(imageId));
-              }
-              toast({
-                title: "DICOM file loaded",
-                description: `Successfully loaded ${file.name}`,
-              });
-            }
-          } else {
-            const imageUrl = URL.createObjectURL(file);
-            newImages.push(imageUrl);
-          }
-        } catch (error) {
-          console.error('Error loading file:', error);
-          toast({
-            title: "Error loading file",
-            description: `Failed to load ${file.name}. Make sure it's a valid image or DICOM file.`,
-            variant: "destructive"
-          });
-        }
-      }
-      
-      setImages(prev => [...prev, ...newImages]);
-      if (images.length === 0) {
-        setCurrentImageIndex(0);
-      }
+  const handleImagesUploaded = (newImages: string[]) => {
+    setImages(prev => [...prev, ...newImages]);
+    if (images.length === 0) {
+      setCurrentImageIndex(0);
     }
   };
 
@@ -101,63 +56,12 @@ const XRayViewer = () => {
 
     if (!measureStart) {
       setMeasureStart({ x, y });
-      toast({ title: "Start point set" });
     } else {
       setMeasureEnd({ x, y });
       const distance = calculateDistance(measureStart, { x, y });
       setMeasureDistance(distance);
-      toast({ title: `Distance: ${distance}px` });
     }
   };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isMeasuring) {
-      handleImageClick(e);
-      return;
-    }
-
-    if (e.button === 2) {
-      e.preventDefault();
-      setAdjustStart({ x: e.clientX, y: e.clientY });
-    } else if (e.button === 0) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
-      });
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (e.buttons === 2) {
-      const deltaX = e.clientX - adjustStart.x;
-      const deltaY = e.clientY - adjustStart.y;
-      setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
-      setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
-      setAdjustStart({ x: e.clientX, y: e.clientY });
-    } else if (isDragging && e.buttons === 0) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      });
-    }
-  };
-
-  const handleClickOutside = (e: MouseEvent) => {
-    if (viewerRef.current && !viewerRef.current.contains(e.target as Node)) {
-      setIsMeasuring(false);
-      setMeasureStart(null);
-      setMeasureEnd(null);
-      setMeasureDistance(null);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   return (
     <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
@@ -180,7 +84,7 @@ const XRayViewer = () => {
           )}
         </div>
 
-        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative" ref={viewerRef}>
+        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative">
           {images.length > 0 ? (
             <>
               {isGridView ? (
@@ -191,10 +95,6 @@ const XRayViewer = () => {
                     contrast={contrast}
                     exposure={exposure}
                     onImageClick={handleImageClick}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
                     showHeatmap={showHeatmap}
                     zoom={zoom}
                     position={position}
@@ -208,12 +108,10 @@ const XRayViewer = () => {
               ) : (
                 <div className="relative w-full h-[80vh] flex items-center justify-center">
                   {isDicomImage(images[currentImageIndex]) ? (
-                    <div 
-                      className="dicom-image w-full h-full"
-                      style={{
-                        width: '100%',
-                        height: '100%'
-                      }}
+                    <DicomViewer
+                      imageId={images[currentImageIndex]}
+                      position={position}
+                      zoom={zoom}
                     />
                   ) : (
                     <img 
@@ -289,44 +187,20 @@ const XRayViewer = () => {
               )}
             </>
           ) : (
-            <div className="text-gray-500 flex flex-col items-center gap-4">
-              <Upload size={48} className="text-medical" />
-              <span>Upload X-Ray images to begin</span>
-              <label className="cursor-pointer hover:text-medical">
-                <input
-                  type="file"
-                  accept="image/*,.dcm"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                Click to upload
-              </label>
-            </div>
+            <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
           )}
         </div>
       </div>
 
       <XRayControlPanel
-        aiModel={aiModel}
-        setAiModel={setAiModel}
-        mode={mode}
-        setMode={setMode}
-        sensitivity={sensitivity}
-        setSensitivity={setSensitivity}
-        focus={focus}
-        setFocus={setFocus}
-        noiseCancellation={noiseCancellation}
-        setNoiseCancellation={setNoiseCancellation}
         zoom={zoom}
         setZoom={setZoom}
         showHeatmap={showHeatmap}
         setShowHeatmap={setShowHeatmap}
-        onFileUpload={handleFileUpload}
+        onFileUpload={handleImagesUploaded}
       />
     </div>
   );
 };
 
 export default XRayViewer;
-
