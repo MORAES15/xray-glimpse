@@ -81,7 +81,7 @@ const XRayGrid = ({
             {isActiveImage && isMeasuring && measureStart && measureEnd && (
               <>
                 <svg
-                  className="absolute inset-0 pointer-events-none"
+                  className="absolute inset-0 pointer-events-none measurement-overlay"
                   style={{ 
                     width: '100%', 
                     height: '100%',
@@ -97,6 +97,7 @@ const XRayGrid = ({
                     y2={`${measureEnd.y}%`}
                     stroke="#0EA5E9"
                     strokeWidth="2"
+                    strokeDasharray="4"
                   />
                   <circle
                     cx={`${measureStart.x}%`}
@@ -128,6 +129,12 @@ const XRayGrid = ({
             <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-sm text-white">
               {currentImageIndex + 1}
             </div>
+            {isActiveImage && (
+              <div className="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-sm text-white space-x-2">
+                <span>C:{Math.round(contrast)}%</span>
+                <span>E:{Math.round(exposure)}%</span>
+              </div>
+            )}
           </div>
         );
       })}
