@@ -2,6 +2,7 @@ import * as cornerstone from 'cornerstone-core';
 import * as dicomParser from 'dicom-parser';
 
 export const initializeDicomLoader = () => {
+  // Register the custom DICOM loader
   cornerstone.registerImageLoader('dicomFile', loadImageFromArrayBuffer);
 };
 
@@ -25,24 +26,26 @@ const loadImageFromArrayBuffer = async (imageId: string) => {
     }
 
     const pixelData = new Uint16Array(arrayBuffer, pixelDataElement.dataOffset, pixelDataElement.length / 2);
+    const rows = dataSet.uint16('x00280010');
+    const columns = dataSet.uint16('x00280011');
 
     return {
-      imageId,
+      imageId: blobUrl,
       minPixelValue: 0,
-      maxPixelValue: 4095, // Typical for 12-bit DICOM
+      maxPixelValue: 4095,
       slope: dataSet.floatString('x00281053', 1),
       intercept: dataSet.floatString('x00281052', 0),
       windowCenter: dataSet.floatString('x00281050', 2048),
       windowWidth: dataSet.floatString('x00281051', 4096),
-      rows: dataSet.uint16('x00280010'),
-      columns: dataSet.uint16('x00280011'),
-      height: dataSet.uint16('x00280010'),
-      width: dataSet.uint16('x00280011'),
+      getPixelData: () => pixelData,
+      rows,
+      columns,
+      height: rows,
+      width: columns,
       color: false,
       columnPixelSpacing: dataSet.floatString('x00280030', 1),
       rowPixelSpacing: dataSet.floatString('x00280030', 1),
-      sizeInBytes: byteArray.length,
-      getPixelData: () => pixelData
+      sizeInBytes: byteArray.length
     };
   } catch (error) {
     console.error('Error loading DICOM image:', error);
