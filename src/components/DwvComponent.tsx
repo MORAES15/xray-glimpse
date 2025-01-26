@@ -27,7 +27,14 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
     if (!dwvApp.current) {
       dwvApp.current = new dwv.App();
       dwvApp.current.init({
-        dataViewConfigs: { '*': [{ divId: 'dwv' }] },
+        dataViewConfigs: { 
+          '*': [{
+            divId: 'dwv',
+            orientation: 'axial',
+            colourMap: 'plain',
+            opacity: 1.0
+          }]
+        },
         tools: tools
       });
     }
