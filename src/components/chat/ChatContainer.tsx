@@ -41,7 +41,7 @@ const ChatContainer = () => {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-foreground">Chat</h2>
-      <div className="h-[200px] bg-background/20 rounded-lg p-4 overflow-y-auto">
+      <div className="h-[400px] bg-[#F1F0FB] dark:bg-background/20 rounded-lg p-4 overflow-y-auto">
         {messages.length === 0 ? (
           <p className="text-muted-foreground text-sm">No messages yet. Start a conversation!</p>
         ) : (

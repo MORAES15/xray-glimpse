@@ -52,26 +52,32 @@ const ContrastExposureControl = ({
   }, [handleMouseMove]);
 
   const startAdjusting = (e: React.MouseEvent) => {
-    setIsAdjusting(true);
-    setStartPos({ x: e.clientX, y: e.clientY });
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    toast({
-      title: isDicom ? "Adjusting Window/Level" : "Adjusting Contrast/Exposure",
-      description: "Move mouse horizontally for width, vertically for center",
-    });
+    if (e.button === 2) { // Right click
+      setIsAdjusting(true);
+      setStartPos({ x: e.clientX, y: e.clientY });
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      toast({
+        title: isDicom ? "Adjusting Window/Level" : "Adjusting Contrast/Exposure",
+        description: "Move mouse horizontally for width, vertically for center",
+      });
+    }
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={startAdjusting}
+    <div
+      onMouseDown={startAdjusting}
+      onContextMenu={(e) => e.preventDefault()}
       className={`hover:bg-medical/20 ${isAdjusting ? 'bg-medical/20' : ''}`}
-      title={isDicom ? "Adjust Window/Level" : "Adjust Contrast/Exposure"}
     >
-      <SunDim size={20} className="text-white" />
-    </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        title={isDicom ? "Right-click to adjust Window/Level" : "Right-click to adjust Contrast/Exposure"}
+      >
+        <SunDim size={20} className="text-white" />
+      </Button>
+    </div>
   );
 };
 
