@@ -3,14 +3,6 @@ import { Button } from '../ui/button';
 import ChatMessage, { type ChatMessage as ChatMessageType } from './ChatMessage';
 import { useToast } from '../ui/use-toast';
 
-const diagnosticMessages = [
-  "Clear Pneumonia Case:\nProminent bilateral infiltrates in lower lung zones, consistent with bacterial pneumonia. Dense consolidation in right lower lobe with air bronchograms. Recommend antibiotic therapy and follow-up imaging in 6-8 weeks.",
-  "Normal Healthy Chest:\nClear lung fields bilaterally. Normal cardiac silhouette without cardiomegaly. No pleural effusions or pneumothorax. Unremarkable mediastinal contours. Routine follow-up recommended.",
-  "Pulmonary Edema:\nBilateral interstitial edema with prominent Kerley B lines. Enlarged cardiac silhouette suggesting congestive heart failure. Cephalization of pulmonary vessels. Requires urgent cardiac evaluation.",
-  "Lung Mass:\n3cm spiculated mass in right upper lobe highly suspicious for primary lung malignancy. No pleural effusions. Mediastinal lymphadenopathy noted. Immediate CT follow-up required.",
-  "Tuberculosis:\nBilateral upper lobe cavitary lesions with surrounding infiltrates typical for active tuberculosis. Fibrotic changes and volume loss in right apex. Isolation precautions and infectious disease consultation recommended."
-];
-
 const ChatContainer = () => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [inputText, setInputText] = useState('');
@@ -18,14 +10,15 @@ const ChatContainer = () => {
 
   useEffect(() => {
     const handleNewMessage = (event: CustomEvent<{ message: ChatMessageType }>) => {
-      console.log('New message received:', event.detail.message);
+      console.log('New message received in ChatContainer:', event.detail.message);
       setMessages(prev => [...prev, event.detail.message]);
     };
 
-    document.addEventListener('newChatMessage', handleNewMessage as EventListener);
+    // Add event listener to window instead of document
+    window.addEventListener('newChatMessage', handleNewMessage as EventListener);
 
     return () => {
-      document.removeEventListener('newChatMessage', handleNewMessage as EventListener);
+      window.removeEventListener('newChatMessage', handleNewMessage as EventListener);
     };
   }, []);
 

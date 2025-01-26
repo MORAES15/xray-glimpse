@@ -43,7 +43,8 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
           const randomMessage = diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
           console.log('Dispatching message:', randomMessage);
           
-          const event = new CustomEvent('newChatMessage', {
+          // Create and dispatch the custom event
+          window.dispatchEvent(new CustomEvent('newChatMessage', {
             detail: {
               message: {
                 id: Date.now().toString(),
@@ -52,8 +53,7 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
                 timestamp: new Date()
               }
             }
-          });
-          document.dispatchEvent(event);
+          }));
 
         } catch (error) {
           console.error('Error loading file:', error);
