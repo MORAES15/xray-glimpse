@@ -21,8 +21,8 @@ const XRayViewer = () => {
   const { toast } = useToast();
 
   const handleImagesUploaded = (newFiles: File[]) => {
-    setFiles(prev => [...prev, ...newFiles]);
-    setCurrentFileIndex(files.length);
+    setFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setCurrentFileIndex(prevIndex => prevFiles.length);
   };
 
   return (

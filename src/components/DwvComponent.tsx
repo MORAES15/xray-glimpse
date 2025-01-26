@@ -5,36 +5,22 @@ interface DwvComponentProps {
   imageData?: File;
 }
 
-// Define proper tool configuration type
-interface ToolConfig {
-  options: {
-    eventNames?: string[];
-    configuration?: any;
-  };
-}
-
 const DwvComponent = ({ imageData }: DwvComponentProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const dwvApp = useRef<dwv.App | null>(null);
 
   useEffect(() => {
-    // DWV configuration with proper tool config
-    const tools: { [key: string]: ToolConfig } = {
+    // DWV configuration
+    const tools = {
       Scroll: {
-        options: {
-          eventNames: ['mousewheel', 'touchstart'],
-        },
+        options: ['mousewheel', 'touchstart']
       },
       ZoomAndPan: {
-        options: {
-          eventNames: ['mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
-        },
+        options: ['mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend']
       },
       WindowLevel: {
-        options: {
-          eventNames: ['mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
-        },
-      },
+        options: ['mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend']
+      }
     };
 
     // Initialize DWV
