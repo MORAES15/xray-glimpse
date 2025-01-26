@@ -1,12 +1,26 @@
 import React, { useEffect, useRef } from 'react';
 import * as cornerstone from 'cornerstone-core';
+import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
+import * as cornerstoneMath from 'cornerstone-math';
+import * as cornerstoneTools from 'cornerstone-tools';
 import { useToast } from './ui/use-toast';
 
 // Initialize cornerstone configuration
 const initializeCornerstoneConfig = () => {
+  // Initialize external modules
+  cornerstoneTools.external.cornerstone = cornerstone;
+  cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+  
+  // Initialize image loader
+  cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+  cornerstoneWADOImageLoader.external.dicomParser = cornerstoneWADOImageLoader.wadors.dicomParser;
+  
+  // Set maximum cache size
   cornerstone.imageCache.setMaximumSizeBytes(83886080); // 80 MB
-  cornerstone.webGL.renderer.setOptions({
-    preserveDrawingBuffer: true,
+  
+  // Initialize tools
+  cornerstoneTools.init({
+    showSVGCursors: true,
   });
 };
 
@@ -28,6 +42,11 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
         hasInitialized.current = true;
       } catch (error) {
         console.error('Error initializing cornerstone config:', error);
+        toast({
+          title: "Error initializing DICOM viewer",
+          description: "There was an error setting up the DICOM viewer",
+          variant: "destructive"
+        });
       }
     }
   }, []);
@@ -40,7 +59,7 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
         const element = elementRef.current;
         
         // Enable the element for cornerstone
-        await cornerstone.enable(element);
+        cornerstone.enable(element);
         
         // Load and display the image
         const image = await cornerstone.loadImage(imageId);
@@ -56,6 +75,12 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
           };
           cornerstone.setViewport(element, viewport);
         }
+        
+        // Initialize tools
+        cornerstoneTools.addTool(cornerstoneTools.PanTool);
+        cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
+        cornerstoneTools.setToolActive('Pan', { mouseButtonMask: 1 });
+        cornerstoneTools.setToolActive('Zoom', { mouseButtonMask: 2 });
         
         // Add event listeners for mouse interactions
         element.addEventListener('mousedown', function(e) {

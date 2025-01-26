@@ -1,16 +1,28 @@
 import * as cornerstone from 'cornerstone-core';
+import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import * as dicomParser from 'dicom-parser';
 
 export const initializeDicomLoader = () => {
-  // Register the custom DICOM loader
+  // Configure webworker for image decoding
+  const config = {
+    webWorkerPath: `${window.location.origin}/cornerstoneWADOImageLoaderWebWorker.js`,
+    taskConfiguration: {
+      decodeTask: {
+        loadCodecsOnStartup: true,
+        initializeCodecsOnStartup: false,
+        codecsPath: `${window.location.origin}/cornerstoneWADOImageLoaderCodecs.js`,
+      },
+    },
+  };
+  
+  cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
   cornerstone.registerImageLoader('dicomFile', loadImageFromArrayBuffer);
 };
 
 const loadImageFromArrayBuffer = async (imageId: string) => {
   try {
-    // Remove the 'dicomFile:' prefix to get the actual blob URL
-    const blobUrl = imageId.replace('dicomFile:', '');
-    const response = await fetch(blobUrl);
+    const cleanImageId = imageId.replace('dicomFile:', '');
+    const response = await fetch(cleanImageId);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -30,7 +42,7 @@ const loadImageFromArrayBuffer = async (imageId: string) => {
     const columns = dataSet.uint16('x00280011');
 
     return {
-      imageId: blobUrl,
+      imageId: cleanImageId,
       minPixelValue: 0,
       maxPixelValue: 4095,
       slope: dataSet.floatString('x00281053', 1),
