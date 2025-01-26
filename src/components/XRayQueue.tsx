@@ -19,7 +19,7 @@ const XRayQueue = ({ images, currentIndex, onSelect }: XRayQueueProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-2 w-20 md:w-24 glass-dark rounded-lg p-2 h-full">
+    <div className="flex flex-col gap-2 w-24 glass-dark rounded-lg p-2">
       <Button
         variant="ghost"
         size="icon"
@@ -30,7 +30,7 @@ const XRayQueue = ({ images, currentIndex, onSelect }: XRayQueueProps) => {
         <ArrowLeft size={20} className="text-white" />
       </Button>
       
-      <ScrollArea className="flex-1" onWheel={handleWheel}>
+      <ScrollArea className="h-[60vh]" onWheel={handleWheel}>
         <div className="flex flex-col gap-2">
           {images.map((img, index) => (
             <div
@@ -43,7 +43,7 @@ const XRayQueue = ({ images, currentIndex, onSelect }: XRayQueueProps) => {
               <img
                 src={img}
                 alt={`X-Ray ${index + 1}`}
-                className="w-full h-16 md:h-20 object-cover"
+                className="w-full h-20 object-cover"
               />
               <div className="absolute bottom-0 right-0 bg-black/60 px-1 text-xs text-white">
                 {index + 1}

@@ -7,7 +7,6 @@ import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
-import XRayActionButtons from './XRayActionButtons';
 import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 
@@ -44,19 +43,6 @@ const XRayViewer = () => {
     // Reset measurement when switching views
     resetMeasurement();
   }, [isGridView, resetMeasurement]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      // Check if the click is outside any image
-      if (!target.closest('img')) {
-        resetMeasurement();
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [resetMeasurement]);
 
   const handleImagesUploaded = (newImages: string[]) => {
     if (Array.isArray(newImages) && newImages.length > 0) {
@@ -110,10 +96,7 @@ const XRayViewer = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isMeasuring) {
-      // When measuring, prevent panning
-      return;
-    }
+    if (isMeasuring) return;
     
     if (e.button === 2) { // Right click
       setIsAdjusting(true);
@@ -121,15 +104,10 @@ const XRayViewer = () => {
     } else {
       setIsDragging(true);
     }
-    // Stop event propagation to prevent the outside click handler from firing
-    e.stopPropagation();
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isMeasuring) {
-      // When measuring, prevent panning and adjusting
-      return;
-    }
+    if (isMeasuring) return;
 
     if (isAdjusting && startPos) {
       const deltaX = e.clientX - startPos.x;
@@ -150,32 +128,30 @@ const XRayViewer = () => {
   };
 
   const handleMouseUp = () => {
-    if (!isMeasuring) {
-      setIsDragging(false);
-      setIsAdjusting(false);
-      setStartPos(null);
-    }
+    setIsDragging(false);
+    setIsAdjusting(false);
+    setStartPos(null);
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
     if (e.button === 2) { // Right click
+      toggleMeasuring(false);
       return;
     }
     
     if (isGridView && typeof clickedImageIndex === 'number') {
       setCurrentImageIndex(clickedImageIndex);
     }
-
-    if (isMeasuring) {
-      handleMeasureClick(e, isGridView);
-      e.stopPropagation(); // Prevent click from bubbling
-    }
+    handleMeasureClick(e, isGridView);
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full gap-4 p-2 md:p-4 overflow-hidden">
-      <div className="flex flex-1 gap-4 min-h-0">
-        <div className="flex flex-col gap-4">
+    <div 
+      className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" 
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <div className="flex flex-1 gap-4 flex-col md:flex-row">
+        <div className="flex gap-4 flex-row md:flex-col">
           <XRayToolbar
             isMeasuring={isMeasuring}
             setIsMeasuring={toggleMeasuring}
@@ -193,11 +169,11 @@ const XRayViewer = () => {
           )}
         </div>
 
-        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0">
+        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative">
           {images.length > 0 ? (
-            <div className="relative w-full h-full">
+            <>
               {isGridView ? (
-                <div className="w-full h-full overflow-auto">
+                <div className="w-full h-[80vh] overflow-auto">
                   <XRayGrid
                     images={images}
                     startIndex={Math.floor(currentImageIndex / 4) * 4}
@@ -219,7 +195,7 @@ const XRayViewer = () => {
                   />
                 </div>
               ) : (
-                <div className="relative w-full h-full flex items-center justify-center">
+                <div className="relative w-full h-[80vh] flex items-center justify-center">
                   {isDicomImage(images[currentImageIndex]) ? (
                     <DicomViewer
                       imageId={images[currentImageIndex]}
@@ -287,13 +263,10 @@ const XRayViewer = () => {
                       {measureDistance}px
                     </div>
                   )}
-                  <div className="absolute bottom-4 left-4 text-white text-sm font-mono bg-black/60 px-2 py-1 rounded">
-                    C: {contrast}% | E: {exposure}%
-                  </div>
                 </div>
               )}
               {images.length > 0 && (
-                <div className="absolute right-0 top-0 bottom-0">
+                <div className="absolute right-0 top-0 bottom-0 w-24">
                   <XRayQueue
                     images={images}
                     currentIndex={currentImageIndex}
@@ -301,15 +274,14 @@ const XRayViewer = () => {
                   />
                 </div>
               )}
-            </div>
+            </>
           ) : (
             <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 md:w-80">
-        <XRayActionButtons />
+      <div className="flex gap-4">
         <XRayControlPanel
           zoom={zoom}
           setZoom={setZoom}

@@ -40,7 +40,6 @@ export const useMeasurement = () => {
     setMeasureStart(null);
     setMeasureEnd(null);
     setMeasureDistance(null);
-    setIsMeasuring(false);
   }, []);
 
   const toggleMeasuring = useCallback((value: boolean) => {
