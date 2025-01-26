@@ -36,6 +36,7 @@ interface XRayToolbarProps {
   setContrast: (value: number) => void;
   setExposure: (value: number) => void;
   currentImageId?: string;
+  onExportImage: () => void;
 }
 
 const XRayToolbar = ({
@@ -48,67 +49,11 @@ const XRayToolbar = ({
   setIsGridView,
   setContrast,
   setExposure,
-  currentImageId
+  currentImageId,
+  onExportImage
 }: XRayToolbarProps) => {
   const { toast } = useToast();
   const isDicom = currentImageId ? isDicomImage(currentImageId) : false;
-
-  const handleExportImage = () => {
-    const imageElement = document.querySelector('.image-container img') as HTMLImageElement;
-    if (!imageElement) {
-      toast({ 
-        title: "Export failed",
-        description: "No image found to export",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas dimensions to match the image
-    canvas.width = imageElement.naturalWidth;
-    canvas.height = imageElement.naturalHeight;
-    
-    if (ctx) {
-      // Draw the image with its current filters
-      ctx.filter = imageElement.style.filter;
-      ctx.drawImage(imageElement, 0, 0);
-      
-      // Get the SVG element containing measurements
-      const svgElement = document.querySelector('.measurement-overlay') as SVGElement;
-      if (svgElement) {
-        // Convert SVG to image and draw it on top
-        const svgData = new XMLSerializer().serializeToString(svgElement);
-        const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-        const svgUrl = URL.createObjectURL(svgBlob);
-        
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          // Create download link
-          const link = document.createElement('a');
-          link.download = 'xray-export.png';
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-          URL.revokeObjectURL(svgUrl);
-        };
-        img.src = svgUrl;
-      } else {
-        // If no measurements, just export the image
-        const link = document.createElement('a');
-        link.download = 'xray-export.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }
-      
-      toast({ 
-        title: "Image exported successfully",
-        description: "The image has been downloaded with all current modifications"
-      });
-    }
-  };
 
   const tools = [
     { 
@@ -176,7 +121,7 @@ const XRayToolbar = ({
     { 
       icon: <Download size={20} className="text-white" />, 
       name: 'Export Image', 
-      action: handleExportImage
+      action: onExportImage
     },
     { 
       icon: <Printer size={20} className="text-white" />, 
