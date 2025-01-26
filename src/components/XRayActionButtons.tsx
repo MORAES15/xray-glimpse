@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from './ui/button';
-import { Printer, Share2, AlertCircle, FileOutput, Database } from 'lucide-react';
+import { Printer, Share2, AlertCircle, FileOutput, Database, Network, Server } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 
 const XRayActionButtons = () => {
@@ -25,6 +25,14 @@ const XRayActionButtons = () => {
 
   const handleExportData = () => {
     toast({ title: "Exporting data..." });
+  };
+
+  const handleConnectLocal = () => {
+    toast({ title: "Connecting to local network..." });
+  };
+
+  const handlePacsConnect = () => {
+    toast({ title: "Connecting to PACS..." });
   };
 
   return (
@@ -87,6 +95,30 @@ const XRayActionButtons = () => {
         <Database size={20} className="text-white" />
         <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
           Export Data
+        </span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleConnectLocal}
+        className="hover:bg-medical/20 relative group"
+        title="Connect to Local Network"
+      >
+        <Network size={20} className="text-white" />
+        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+          Connect Local
+        </span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handlePacsConnect}
+        className="hover:bg-medical/20 relative group"
+        title="Connect to PACS"
+      >
+        <Server size={20} className="text-white" />
+        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+          PACS
         </span>
       </Button>
     </div>
