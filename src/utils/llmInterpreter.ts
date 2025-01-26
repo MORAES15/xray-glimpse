@@ -15,7 +15,7 @@ export const initializeLLM = async () => {
   try {
     classifier = await pipeline(
       "text-generation",
-      "onnx-community/clinical-bert-tiny",
+      "onnx-community/bert-base-uncased",
       { device: "cpu" }
     );
     console.log("LLM initialized successfully");
