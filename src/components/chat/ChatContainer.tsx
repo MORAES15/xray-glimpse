@@ -14,10 +14,10 @@ const ChatContainer = () => {
       setMessages(prev => [...prev, event.detail.message]);
     };
 
-    window.addEventListener('newChatMessage', handleNewMessage as EventListener);
+    document.addEventListener('newChatMessage', handleNewMessage as EventListener);
 
     return () => {
-      window.removeEventListener('newChatMessage', handleNewMessage as EventListener);
+      document.removeEventListener('newChatMessage', handleNewMessage as EventListener);
     };
   }, []);
 
