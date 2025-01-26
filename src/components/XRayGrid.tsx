@@ -39,12 +39,11 @@ const XRayGrid = ({
   isMeasuring,
   measureDistance
 }: XRayGridProps) => {
-  const gridImages = images.slice(startIndex, startIndex + 4);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 w-full h-full p-2 md:p-4">
-      {gridImages.map((img, index) => {
+      {images.slice(startIndex, startIndex + 4).map((img, index) => {
         const currentImageIndex = startIndex + index;
         const isActiveImage = currentImageIndex === activeImageIndex;
         
@@ -79,16 +78,15 @@ const XRayGrid = ({
               }}
             />
             {isActiveImage && isMeasuring && measureStart && measureEnd && (
-              <>
+              <div className="absolute inset-0 pointer-events-none" style={{
+                transform: hoveredIndex === index ? 
+                  `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
+                  'none'
+              }}>
                 <svg
-                  className="absolute inset-0 pointer-events-none measurement-overlay"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%',
-                    transform: hoveredIndex === index ? 
-                      `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
-                      'none'
-                  }}
+                  className="absolute inset-0 measurement-overlay"
+                  style={{ width: '100%', height: '100%' }}
+                  preserveAspectRatio="none"
                 >
                   <line
                     x1={`${measureStart.x}%`}
@@ -124,7 +122,7 @@ const XRayGrid = ({
                     {measureDistance}px
                   </div>
                 )}
-              </>
+              </div>
             )}
             <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-sm text-white">
               {currentImageIndex + 1}
