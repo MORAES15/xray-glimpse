@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import ChatMessage, { type ChatMessage as ChatMessageType } from './ChatMessage';
 import { useToast } from '../ui/use-toast';
@@ -7,6 +7,18 @@ const ChatContainer = () => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [inputText, setInputText] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    const handleNewMessage = (event: CustomEvent<{ message: ChatMessageType }>) => {
+      setMessages(prev => [...prev, event.detail.message]);
+    };
+
+    window.addEventListener('newChatMessage', handleNewMessage as EventListener);
+
+    return () => {
+      window.removeEventListener('newChatMessage', handleNewMessage as EventListener);
+    };
+  }, []);
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
@@ -20,17 +32,6 @@ const ChatContainer = () => {
 
     setMessages(prev => [...prev, newMessage]);
     setInputText('');
-
-    // Simulate system response
-    setTimeout(() => {
-      const systemResponse: ChatMessageType = {
-        id: (Date.now() + 1).toString(),
-        text: "I've received your message. This is a demo response.",
-        sender: 'system',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, systemResponse]);
-    }, 1000);
 
     toast({
       title: "Message sent",
