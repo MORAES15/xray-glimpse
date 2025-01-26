@@ -12,7 +12,6 @@ const XRayActionButtons = () => {
   };
 
   const handleShare = () => {
-    // For now just show a toast - could be expanded to actual sharing functionality
     toast({ title: "Share functionality coming soon" });
   };
 
@@ -29,7 +28,7 @@ const XRayActionButtons = () => {
   };
 
   return (
-    <div className="flex gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
+    <div className="flex gap-2 p-2 glass-dark rounded-lg animate-fadeIn self-end">
       <Button
         variant="ghost"
         size="icon"

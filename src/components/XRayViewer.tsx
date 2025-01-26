@@ -166,8 +166,8 @@ const XRayViewer = () => {
       className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" 
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className="flex flex-1 gap-4 flex-col md:flex-row">
-        <div className="flex gap-4 flex-row md:flex-col">
+      <div className="flex flex-1 gap-4">
+        <div className="flex gap-4 flex-col">
           <XRayToolbar
             isMeasuring={isMeasuring}
             setIsMeasuring={toggleMeasuring}
@@ -279,6 +279,9 @@ const XRayViewer = () => {
                       {measureDistance}px
                     </div>
                   )}
+                  <div className="absolute bottom-4 left-4 text-white text-sm font-mono bg-black/60 px-2 py-1 rounded">
+                    C: {contrast}% | E: {exposure}%
+                  </div>
                 </div>
               )}
               {images.length > 0 && (
@@ -297,7 +300,7 @@ const XRayViewer = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 min-w-80">
         <XRayActionButtons />
         <XRayControlPanel
           zoom={zoom}
