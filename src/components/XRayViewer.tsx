@@ -27,8 +27,11 @@ const XRayViewer = () => {
 
   const {
     measureStart,
+    setMeasureStart,
     measureEnd,
+    setMeasureEnd,
     measureDistance,
+    setMeasureDistance,
     isMeasuring,
     handleMeasureClick,
     toggleMeasuring,
