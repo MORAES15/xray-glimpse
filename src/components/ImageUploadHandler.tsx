@@ -43,11 +43,11 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             });
           }
 
-          // Add a random diagnostic message to the chat
+          // Select and dispatch diagnostic message
           const randomMessage = diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
-          console.log('Dispatching message:', randomMessage);
+          console.log('Selected diagnostic message:', randomMessage);
           
-          const messageEvent = new CustomEvent('newChatMessage', {
+          const customEvent = new CustomEvent('newChatMessage', {
             detail: {
               message: {
                 id: Date.now().toString(),
@@ -58,8 +58,8 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             }
           });
           
-          console.log('Dispatching event:', messageEvent);
-          window.dispatchEvent(messageEvent);
+          console.log('Dispatching custom event:', customEvent);
+          window.dispatchEvent(customEvent);
 
         } catch (error) {
           console.error('Error loading file:', error);
