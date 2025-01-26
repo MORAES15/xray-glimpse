@@ -22,6 +22,8 @@ const XRayViewer = () => {
   const [isGridView, setIsGridView] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [isAdjusting, setIsAdjusting] = useState(false);
 
   const {
     measureStart,
@@ -95,17 +97,40 @@ const XRayViewer = () => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
     if (isMeasuring) return;
-    setIsDragging(true);
+    
+    if (e.button === 2) { // Right click
+      setIsAdjusting(true);
+      setStartPos({ x: e.clientX, y: e.clientY });
+    } else {
+      setIsDragging(true);
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!isDragging || isMeasuring) return;
-    const deltaX = e.movementX;
-    const deltaY = e.movementY;
-    setPosition(prev => ({
-      x: prev.x + deltaX,
-      y: prev.y + deltaY
-    }));
+    if (isMeasuring) return;
+
+    if (isAdjusting && startPos) {
+      const deltaX = e.clientX - startPos.x;
+      const deltaY = e.clientY - startPos.y;
+      
+      setContrast(prev => Math.max(0, Math.min(200, prev + deltaX / 2)));
+      setExposure(prev => Math.max(0, Math.min(200, prev - deltaY / 2)));
+      
+      setStartPos({ x: e.clientX, y: e.clientY });
+    } else if (isDragging) {
+      const deltaX = e.movementX;
+      const deltaY = e.movementY;
+      setPosition(prev => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsAdjusting(false);
+    setStartPos(null);
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
@@ -121,7 +146,10 @@ const XRayViewer = () => {
   };
 
   return (
-    <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
+    <div 
+      className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" 
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
         <div className="flex gap-4 flex-row md:flex-col">
           <XRayToolbar
@@ -154,8 +182,8 @@ const XRayViewer = () => {
                     onImageClick={handleImageClick}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
                     showHeatmap={showHeatmap}
                     zoom={zoom}
                     position={position}
@@ -183,8 +211,8 @@ const XRayViewer = () => {
                       onContextMenu={(e) => e.preventDefault()}
                       onMouseDown={handleMouseDown}
                       onMouseMove={handleMouseMove}
-                      onMouseUp={() => setIsDragging(false)}
-                      onMouseLeave={() => setIsDragging(false)}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
                       onClick={handleImageClick}
                       style={{
                         filter: `contrast(${contrast}%) brightness(${exposure}%)`,
