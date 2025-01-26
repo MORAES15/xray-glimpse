@@ -41,12 +41,14 @@ const XRayViewer = () => {
   }, []);
 
   useEffect(() => {
+    // Reset measurement when switching views
     resetMeasurement();
   }, [isGridView, resetMeasurement]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+      // Check if the click is outside any image
       if (!target.closest('img')) {
         resetMeasurement();
       }
@@ -59,7 +61,7 @@ const XRayViewer = () => {
   const handleImagesUploaded = (newImages: string[]) => {
     if (Array.isArray(newImages) && newImages.length > 0) {
       setImages(prev => [...prev, ...newImages]);
-      setCurrentImageIndex(images.length);
+      setCurrentImageIndex(images.length); // Set to the index of the newly added image
     }
   };
 
@@ -109,20 +111,23 @@ const XRayViewer = () => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
     if (isMeasuring) {
+      // When measuring, prevent panning
       return;
     }
     
-    if (e.button === 2) {
+    if (e.button === 2) { // Right click
       setIsAdjusting(true);
       setStartPos({ x: e.clientX, y: e.clientY });
     } else {
       setIsDragging(true);
     }
+    // Stop event propagation to prevent the outside click handler from firing
     e.stopPropagation();
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
     if (isMeasuring) {
+      // When measuring, prevent panning and adjusting
       return;
     }
 
@@ -153,7 +158,7 @@ const XRayViewer = () => {
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
-    if (e.button === 2) {
+    if (e.button === 2) { // Right click
       return;
     }
     
@@ -163,7 +168,7 @@ const XRayViewer = () => {
 
     if (isMeasuring) {
       handleMeasureClick(e, isGridView);
-      e.stopPropagation();
+      e.stopPropagation(); // Prevent click from bubbling
     }
   };
 
