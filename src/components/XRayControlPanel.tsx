@@ -24,13 +24,15 @@ const XRayControlPanel = ({
   return (
     <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn hidden md:block">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <img 
-            src="/lovable-uploads/c46db37c-b7db-4175-b818-0d049fb39b1c.png" 
-            alt="Medfinder Logo" 
-            className="w-8 h-8"
-          />
-          <h2 className="text-xl font-semibold text-white">MEDFINDER</h2>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-medical/10 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/c46db37c-b7db-4175-b818-0d049fb39b1c.png" 
+              alt="Medfinder Logo" 
+              className="w-8 h-8 object-contain"
+            />
+          </div>
+          <h2 className="text-2xl font-bold text-white tracking-wide">MEDFINDER</h2>
         </div>
         <Button
           variant="ghost"
