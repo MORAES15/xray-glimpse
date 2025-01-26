@@ -1,132 +1,28 @@
-import React, { useState, useEffect, useRef, type ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { useToast } from './ui/use-toast';
 import XRayQueue from './XRayQueue';
-import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
-import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
-import DicomViewer from './DicomViewer';
-import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
+import DwvComponent from './DwvComponent';
 
 const XRayViewer = () => {
-  const [images, setImages] = useState<string[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [files, setFiles] = useState<File[]>([]);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [contrast, setContrast] = useState(100);
   const [exposure, setExposure] = useState(100);
   const [zoom, setZoom] = useState(100);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null);
-  const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
-  const [measureDistance, setMeasureDistance] = useState<string | null>(null);
-  const [isGridView, setIsGridView] = useState(false);
   const [aiModel, setAiModel] = useState('General Purpose X-Ray AI');
   const [mode, setMode] = useState('Standard');
   const [sensitivity, setSensitivity] = useState(50);
   const [focus, setFocus] = useState(50);
   const [noiseCancellation, setNoiseCancellation] = useState(50);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const { toast } = useToast(); // Move useToast to component level
+  const { toast } = useToast();
 
-  useEffect(() => {
-    initializeDicomLoader();
-  }, []);
-
-  const handleImagesUploaded = (newImages: string[]) => {
-    if (Array.isArray(newImages) && newImages.length > 0) {
-      setImages(prev => [...prev, ...newImages]);
-      setCurrentImageIndex(images.length); // Set to the index of the newly added image
-    }
-  };
-
-  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const newImages: string[] = [];
-
-    for (const file of Array.from(files)) {
-      try {
-        if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
-          const imageId = await loadDicomFile(file);
-          if (imageId) {
-            newImages.push(imageId);
-            toast({
-              title: "DICOM file loaded",
-              description: `Successfully loaded ${file.name}`,
-            });
-          }
-        } else if (file.type.startsWith('image/')) {
-          const imageUrl = URL.createObjectURL(file);
-          newImages.push(imageUrl);
-          toast({
-            title: "Image loaded",
-            description: `Successfully loaded ${file.name}`,
-          });
-        } else {
-          toast({
-            title: "Invalid file type",
-            description: "Please upload only image or DICOM files",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error('Error loading file:', error);
-        toast({
-          title: "Error loading file",
-          description: `Failed to load ${file.name}`,
-          variant: "destructive"
-        });
-      }
-    }
-
-    handleImagesUploaded(newImages);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isMeasuring) return;
-    setIsDragging(true);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!isDragging || isMeasuring) return;
-    const deltaX = e.movementX;
-    const deltaY = e.movementY;
-    setPosition(prev => ({
-      x: prev.x + deltaX,
-      y: prev.y + deltaY
-    }));
-  };
-
-  const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    if (!start || !end) return "0";
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    return Math.sqrt(dx * dx + dy * dy).toFixed(2);
-  };
-
-  const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
-    if (!isMeasuring) return;
-
-    const target = e.target as HTMLImageElement;
-    const rect = target.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    if (isGridView && typeof clickedImageIndex === 'number') {
-      setCurrentImageIndex(clickedImageIndex);
-    }
-
-    if (!measureStart) {
-      setMeasureStart({ x, y });
-    } else {
-      setMeasureEnd({ x, y });
-      const distance = calculateDistance(measureStart, { x, y });
-      setMeasureDistance(distance);
-    }
+  const handleImagesUploaded = (newFiles: File[]) => {
+    setFiles(prev => [...prev, ...newFiles]);
+    setCurrentFileIndex(files.length);
   };
 
   return (
@@ -134,133 +30,36 @@ const XRayViewer = () => {
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
         <div className="flex gap-4 flex-row md:flex-col">
           <XRayToolbar
-            isMeasuring={isMeasuring}
-            setIsMeasuring={setIsMeasuring}
+            isMeasuring={false}
+            setIsMeasuring={() => {}}
             setZoom={setZoom}
-            setPosition={setPosition}
-            setIsDragging={setIsDragging}
-            isGridView={isGridView}
-            setIsGridView={setIsGridView}
+            setPosition={() => {}}
+            setIsDragging={() => {}}
+            isGridView={false}
+            setIsGridView={() => {}}
             setContrast={setContrast}
             setExposure={setExposure}
-            currentImageId={images[currentImageIndex]}
           />
-          {isDicomImage(images[currentImageIndex]) && (
-            <DicomMetadataPanel imageId={images[currentImageIndex]} />
-          )}
         </div>
 
         <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative">
-          {images.length > 0 ? (
+          {files.length > 0 ? (
             <>
-              {isGridView ? (
-                <div className="w-full h-[80vh] overflow-auto">
-                  <XRayGrid
-                    images={images}
-                    startIndex={Math.floor(currentImageIndex / 4) * 4}
-                    contrast={contrast}
-                    exposure={exposure}
-                    onImageClick={handleImageClick}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
-                    showHeatmap={showHeatmap}
-                    zoom={zoom}
-                    position={position}
-                    measureStart={measureStart}
-                    measureEnd={measureEnd}
-                    activeImageIndex={currentImageIndex}
-                    isMeasuring={isMeasuring}
-                    measureDistance={measureDistance}
-                  />
-                </div>
-              ) : (
-                <div className="relative w-full h-[80vh] flex items-center justify-center">
-                  {isDicomImage(images[currentImageIndex]) ? (
-                    <DicomViewer
-                      imageId={images[currentImageIndex]}
-                      position={position}
-                      zoom={zoom}
-                    />
-                  ) : (
-                    <img 
-                      ref={imageRef}
-                      src={images[currentImageIndex]} 
-                      alt="X-Ray"
-                      className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
-                      onContextMenu={(e) => e.preventDefault()}
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={() => setIsDragging(false)}
-                      onMouseLeave={() => setIsDragging(false)}
-                      onClick={handleImageClick}
-                      style={{
-                        filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                      }}
-                    />
-                  )}
-                  {measureStart && measureEnd && (
-                    <svg
-                      className="absolute inset-0 pointer-events-none"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                      }}
-                    >
-                      <line
-                        x1={`${measureStart.x}%`}
-                        y1={`${measureStart.y}%`}
-                        x2={`${measureEnd.x}%`}
-                        y2={`${measureEnd.y}%`}
-                        stroke="#0EA5E9"
-                        strokeWidth="2"
-                      />
-                      <circle
-                        cx={`${measureStart.x}%`}
-                        cy={`${measureStart.y}%`}
-                        r="4"
-                        fill="#0EA5E9"
-                      />
-                      <circle
-                        cx={`${measureEnd.x}%`}
-                        cy={`${measureEnd.y}%`}
-                        r="4"
-                        fill="#0EA5E9"
-                      />
-                    </svg>
-                  )}
-                  {measureDistance && (
-                    <div 
-                      className="absolute bg-black/60 px-2 py-1 rounded text-sm text-white"
-                      style={{
-                        left: `${(measureStart?.x || 0 + (measureEnd?.x || 0)) / 2}%`,
-                        top: `${(measureStart?.y || 0 + (measureEnd?.y || 0)) / 2}%`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    >
-                      {measureDistance}px
-                    </div>
-                  )}
-                </div>
-              )}
-              {images.length > 0 && (
-                <div className="absolute right-0 top-0 bottom-0 w-24">
-                  <XRayQueue
-                    images={images}
-                    currentIndex={currentImageIndex}
-                    onSelect={setCurrentImageIndex}
-                  />
-                </div>
-              )}
+              <div className="relative w-full h-[80vh] flex items-center justify-center">
+                <DwvComponent imageData={files[currentFileIndex]} />
+              </div>
+              <div className="absolute right-0 top-0 bottom-0 w-24">
+                <XRayQueue
+                  images={files.map(f => URL.createObjectURL(f))}
+                  currentIndex={currentFileIndex}
+                  onSelect={setCurrentFileIndex}
+                />
+              </div>
             </>
           ) : (
             <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
           )}
         </div>
-
       </div>
 
       <XRayControlPanel
@@ -278,7 +77,7 @@ const XRayViewer = () => {
         setZoom={setZoom}
         showHeatmap={showHeatmap}
         setShowHeatmap={setShowHeatmap}
-        onFileUpload={handleFileUpload}
+        onFileUpload={handleImagesUploaded}
       />
     </div>
   );
