@@ -1,4 +1,5 @@
 import React from 'react';
+import MeasurementLine from './MeasurementLine';
 
 interface MeasurementOverlayProps {
   measureStart: { x: number; y: number } | null;
@@ -19,41 +20,19 @@ const MeasurementOverlay = ({
 }: MeasurementOverlayProps) => {
   if (!measureStart || !measureEnd) return null;
 
+  const overlayStyle = {
+    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`,
+    transformOrigin: '0 0'
+  };
+
   return (
-    <div 
-      className="absolute inset-0 pointer-events-none"
-      style={{
-        transform: isHovered ? 
-          `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
-          'none'
-      }}
-    >
+    <div className="absolute inset-0 pointer-events-none" style={overlayStyle}>
       <svg
         className="absolute inset-0 measurement-overlay"
         style={{ width: '100%', height: '100%' }}
         preserveAspectRatio="none"
       >
-        <line
-          x1={`${measureStart.x}%`}
-          y1={`${measureStart.y}%`}
-          x2={`${measureEnd.x}%`}
-          y2={`${measureEnd.y}%`}
-          stroke="#0EA5E9"
-          strokeWidth="2"
-          strokeDasharray="4"
-        />
-        <circle
-          cx={`${measureStart.x}%`}
-          cy={`${measureStart.y}%`}
-          r="4"
-          fill="#0EA5E9"
-        />
-        <circle
-          cx={`${measureEnd.x}%`}
-          cy={`${measureEnd.y}%`}
-          r="4"
-          fill="#0EA5E9"
-        />
+        <MeasurementLine start={measureStart} end={measureEnd} />
       </svg>
       {measureDistance && (
         <div 

@@ -25,7 +25,6 @@ interface XRayGridItemProps {
 
 const XRayGridItem = ({
   img,
-  index,
   currentImageIndex,
   activeImageIndex,
   position,
@@ -45,6 +44,15 @@ const XRayGridItem = ({
   onClick
 }: XRayGridItemProps) => {
   const isActiveImage = currentImageIndex === activeImageIndex;
+  
+  const imageStyle = {
+    filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+    transform: isHovered ? 
+      `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
+      'none',
+    transition: isHovered ? 'none' : 'transform 0.2s ease-out',
+    transformOrigin: '0 0'
+  };
 
   return (
     <div 
@@ -63,13 +71,7 @@ const XRayGridItem = ({
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
-        style={{
-          filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-          transform: isHovered ? 
-            `translate(${position.x}px, ${position.y}px) scale(${zoom/100})` : 
-            'none',
-          transition: isHovered ? 'none' : 'transform 0.2s ease-out'
-        }}
+        style={imageStyle}
       />
       
       {isActiveImage && isMeasuring && (
