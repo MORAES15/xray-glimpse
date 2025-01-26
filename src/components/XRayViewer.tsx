@@ -110,7 +110,10 @@ const XRayViewer = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isMeasuring) return;
+    if (isMeasuring) {
+      // When measuring, prevent panning
+      return;
+    }
     
     if (e.button === 2) { // Right click
       setIsAdjusting(true);
@@ -123,7 +126,10 @@ const XRayViewer = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (isMeasuring) return;
+    if (isMeasuring) {
+      // When measuring, prevent panning and adjusting
+      return;
+    }
 
     if (isAdjusting && startPos) {
       const deltaX = e.clientX - startPos.x;
@@ -144,21 +150,26 @@ const XRayViewer = () => {
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
-    setIsAdjusting(false);
-    setStartPos(null);
+    if (!isMeasuring) {
+      setIsDragging(false);
+      setIsAdjusting(false);
+      setStartPos(null);
+    }
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
     if (e.button === 2) { // Right click
-      toggleMeasuring(false);
       return;
     }
     
     if (isGridView && typeof clickedImageIndex === 'number') {
       setCurrentImageIndex(clickedImageIndex);
     }
-    handleMeasureClick(e, isGridView);
+
+    if (isMeasuring) {
+      handleMeasureClick(e, isGridView);
+      e.stopPropagation(); // Prevent click from bubbling
+    }
   };
 
   return (
