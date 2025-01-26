@@ -3,7 +3,7 @@ import React from 'react';
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'system';
+  sender: 'user' | 'system' | 'JamesBot';
   timestamp: Date;
 }
 
@@ -19,7 +19,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           ? 'bg-medical text-white' 
           : 'bg-background/20 text-foreground'
       }`}>
-        <p className="text-sm">{message.text}</p>
+        <p className="text-sm whitespace-pre-line">{message.text}</p>
         <span className="text-xs opacity-70">
           {message.timestamp.toLocaleTimeString()}
         </span>

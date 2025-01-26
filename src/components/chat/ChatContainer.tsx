@@ -10,6 +10,7 @@ const ChatContainer = () => {
 
   useEffect(() => {
     const handleNewMessage = (event: CustomEvent<{ message: ChatMessageType }>) => {
+      console.log('New message received:', event.detail.message);
       setMessages(prev => [...prev, event.detail.message]);
     };
 

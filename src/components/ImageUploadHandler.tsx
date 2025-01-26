@@ -41,6 +41,8 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
 
           // Add a random diagnostic message to the chat
           const randomMessage = diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
+          console.log('Dispatching message:', randomMessage);
+          
           const chatEvent = new CustomEvent('newChatMessage', {
             detail: {
               message: {
