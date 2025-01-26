@@ -133,6 +133,21 @@ const XRayViewer = () => {
     setStartPos(null);
   };
 
+  const calculateRelativePosition = (e: React.MouseEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    const rect = target.getBoundingClientRect();
+    
+    // Get the scaled dimensions
+    const scaleX = target.naturalWidth / rect.width;
+    const scaleY = target.naturalHeight / rect.height;
+    
+    // Calculate position relative to the image
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    return { x, y };
+  };
+
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
     if (e.button === 2) { // Right click
       toggleMeasuring(false);
@@ -142,7 +157,23 @@ const XRayViewer = () => {
     if (isGridView && typeof clickedImageIndex === 'number') {
       setCurrentImageIndex(clickedImageIndex);
     }
-    handleMeasureClick(e, isGridView);
+
+    if (isMeasuring) {
+      const pos = calculateRelativePosition(e);
+      if (!measureStart) {
+        setMeasureStart(pos);
+        setMeasureEnd(null);
+        setMeasureDistance(null);
+      } else {
+        setMeasureEnd(pos);
+        const dx = pos.x - measureStart.x;
+        const dy = pos.y - measureStart.y;
+        const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
+        setMeasureDistance(`${distance}`);
+      }
+    } else {
+      handleMeasureClick(e, isGridView);
+    }
   };
 
   const handleExportImage = () => {

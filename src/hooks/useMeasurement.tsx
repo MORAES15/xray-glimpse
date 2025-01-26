@@ -11,30 +11,19 @@ export const useMeasurement = () => {
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isMeasuring, setIsMeasuring] = useState(false);
 
-  const calculateDistance = useCallback((start: Point, end: Point) => {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    return Math.sqrt(dx * dx + dy * dy).toFixed(2);
-  }, []);
-
   const handleMeasureClick = useCallback((e: React.MouseEvent<HTMLImageElement>, isGridView: boolean) => {
     if (!isMeasuring) return;
+    // The actual click handling is now in XRayViewer component
+  }, [isMeasuring]);
 
-    const target = e.target as HTMLImageElement;
-    const rect = target.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    if (!measureStart) {
-      setMeasureStart({ x, y });
+  const toggleMeasuring = useCallback((value: boolean) => {
+    setIsMeasuring(value);
+    if (!value) {
+      setMeasureStart(null);
       setMeasureEnd(null);
       setMeasureDistance(null);
-    } else {
-      setMeasureEnd({ x, y });
-      const distance = calculateDistance(measureStart, { x, y });
-      setMeasureDistance(distance);
     }
-  }, [isMeasuring, measureStart, calculateDistance]);
+  }, []);
 
   const resetMeasurement = useCallback(() => {
     setMeasureStart(null);
@@ -42,17 +31,13 @@ export const useMeasurement = () => {
     setMeasureDistance(null);
   }, []);
 
-  const toggleMeasuring = useCallback((value: boolean) => {
-    setIsMeasuring(value);
-    if (!value) {
-      resetMeasurement();
-    }
-  }, [resetMeasurement]);
-
   return {
     measureStart,
+    setMeasureStart,
     measureEnd,
+    setMeasureEnd,
     measureDistance,
+    setMeasureDistance,
     isMeasuring,
     handleMeasureClick,
     toggleMeasuring,
