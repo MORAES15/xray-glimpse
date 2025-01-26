@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
 import ChatMessage, { type ChatMessage as ChatMessageType } from './ChatMessage';
 import { useToast } from '../ui/use-toast';
 
@@ -12,14 +11,7 @@ const diagnosticMessages = [
 ];
 
 const ChatContainer = () => {
-  const initialMessage: ChatMessageType = {
-    id: Date.now().toString(),
-    text: diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)],
-    sender: 'JamesBot',
-    timestamp: new Date()
-  };
-
-  const [messages, setMessages] = useState<ChatMessageType[]>([initialMessage]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [inputText, setInputText] = useState('');
   const { toast } = useToast();
 
@@ -59,9 +51,13 @@ const ChatContainer = () => {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-foreground">Chat</h2>
       <div className="h-[400px] bg-[#F1F0FB] dark:bg-background/20 rounded-lg p-4 overflow-y-auto">
-        {messages.map(message => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
+        {messages.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Upload an X-Ray image to start the analysis</p>
+        ) : (
+          messages.map(message => (
+            <ChatMessage key={message.id} message={message} />
+          ))
+        )}
       </div>
       <div className="flex gap-2">
         <input
