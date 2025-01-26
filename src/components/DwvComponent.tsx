@@ -7,9 +7,15 @@ interface DwvComponentProps {
 
 const DwvComponent = ({ imageData }: DwvComponentProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const dwvApp = useRef<dwv.App | null>(null);
+  const dwvApp = useRef<any>(null);
 
   useEffect(() => {
+    // Ensure dwv is properly loaded
+    if (typeof dwv === 'undefined') {
+      console.error('DWV library not loaded');
+      return;
+    }
+
     // DWV configuration
     const tools = {
       Scroll: {
@@ -25,21 +31,26 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
 
     // Initialize DWV
     if (!dwvApp.current) {
-      dwvApp.current = new dwv.App();
-      dwvApp.current.init({
-        dataViewConfigs: { 
-          '*': [{
-            divId: 'dwv',
-            orientation: 'axial',
-            colourMap: 'plain',
-            opacity: 1.0
-          }]
-        },
-        tools: tools,
-        binders: [],
-        viewOnFirstLoadItem: true,
-        defaultCharacterSet: 'UTF-8'
-      });
+      try {
+        const app = new dwv.App();
+        app.init({
+          dataViewConfigs: { 
+            '*': [{
+              divId: 'dwv',
+              orientation: 'axial',
+              colourMap: dwv.getColourMap('plain'),
+              opacity: 1.0
+            }]
+          },
+          tools: tools,
+          binders: [],
+          viewOnFirstLoadItem: true,
+          defaultCharacterSet: 'UTF-8'
+        });
+        dwvApp.current = app;
+      } catch (error) {
+        console.error('Error initializing DWV:', error);
+      }
     }
 
     return () => {
