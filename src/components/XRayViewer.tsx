@@ -145,6 +145,63 @@ const XRayViewer = () => {
     handleMeasureClick(e, isGridView);
   };
 
+  const handleExportImage = () => {
+    const imageElement = document.querySelector('.image-container img') as HTMLImageElement;
+    if (!imageElement) {
+      toast({ 
+        title: "Export failed",
+        description: "No image found to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas dimensions to match the image
+    canvas.width = imageElement.naturalWidth;
+    canvas.height = imageElement.naturalHeight;
+    
+    if (ctx) {
+      // Draw the image with its current filters
+      ctx.filter = imageElement.style.filter;
+      ctx.drawImage(imageElement, 0, 0);
+      
+      // Get the SVG element containing measurements
+      const svgElement = document.querySelector('.measurement-overlay') as SVGElement;
+      if (svgElement) {
+        // Convert SVG to image and draw it on top
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+        const svgUrl = URL.createObjectURL(svgBlob);
+        
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          // Create download link
+          const link = document.createElement('a');
+          link.download = 'xray-export.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          URL.revokeObjectURL(svgUrl);
+        };
+        img.src = svgUrl;
+      } else {
+        // If no measurements, just export the image
+        const link = document.createElement('a');
+        link.download = 'xray-export.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+      
+      toast({ 
+        title: "Image exported successfully",
+        description: "The image has been downloaded with all current modifications"
+      });
+    }
+  };
+
   return (
     <div 
       className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" 
@@ -163,6 +220,7 @@ const XRayViewer = () => {
             setContrast={setContrast}
             setExposure={setExposure}
             currentImageId={images[currentImageIndex]}
+            onExportImage={handleExportImage}
           />
           {isDicomImage(images[currentImageIndex]) && (
             <DicomMetadataPanel imageId={images[currentImageIndex]} />
@@ -203,26 +261,28 @@ const XRayViewer = () => {
                       zoom={zoom}
                     />
                   ) : (
-                    <img 
-                      ref={imageRef}
-                      src={images[currentImageIndex]} 
-                      alt="X-Ray"
-                      className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
-                      onContextMenu={(e) => e.preventDefault()}
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseUp}
-                      onClick={handleImageClick}
-                      style={{
-                        filter: `contrast(${contrast}%) brightness(${exposure}%)`,
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                      }}
-                    />
+                    <div className="image-container">
+                      <img 
+                        ref={imageRef}
+                        src={images[currentImageIndex]} 
+                        alt="X-Ray"
+                        className={`h-full w-full object-contain cursor-move ${showHeatmap ? 'heatmap-filter' : ''}`}
+                        onContextMenu={(e) => e.preventDefault()}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                        onClick={handleImageClick}
+                        style={{
+                          filter: `contrast(${contrast}%) brightness(${exposure}%)`,
+                          transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
+                        }}
+                      />
+                    </div>
                   )}
                   {measureStart && measureEnd && (
                     <svg
-                      className="absolute inset-0 pointer-events-none"
+                      className="absolute inset-0 pointer-events-none measurement-overlay"
                       style={{ 
                         width: '100%', 
                         height: '100%',
