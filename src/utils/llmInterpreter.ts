@@ -13,11 +13,11 @@ let classifier: any = null;
 
 export const initializeLLM = async () => {
   try {
-    classifier = await pipeline(
-      "text-generation",
-      "onnx-community/bert-base-uncased",
-      { device: "cpu" }
-    );
+    classifier = await pipeline("text-generation", {
+      model: "distilgpt2",
+      task: "text-generation",
+      quantized: false
+    });
     console.log("LLM initialized successfully");
     return true;
   } catch (error) {
@@ -51,6 +51,7 @@ export const interpretPredictions = async (
       max_length: 100,
       temperature: 0.3,
       top_p: 0.9,
+      pad_token_id: 50256
     });
 
     return {
