@@ -4,6 +4,7 @@ import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import * as cornerstoneMath from 'cornerstone-math';
 import * as cornerstoneTools from 'cornerstone-tools';
 import { useToast } from './ui/use-toast';
+import dicomParser from 'dicom-parser';
 
 interface DicomViewerProps {
   imageId: string;
@@ -20,24 +21,49 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
     const element = elementRef.current;
     if (!element || isInitialized.current) return;
 
-    // Basic cornerstone setup
-    cornerstoneTools.external.cornerstone = cornerstone;
-    cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
-    cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-    
-    // Enable the element
-    cornerstone.enable(element);
-    
-    // Initialize tools
-    cornerstoneTools.init();
-    
-    // Add basic tools
-    cornerstoneTools.addTool(cornerstoneTools.PanTool);
-    cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
-    cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
-    
-    isInitialized.current = true;
-    console.log('DicomViewer initialized');
+    try {
+      // Initialize cornerstone and its dependencies
+      cornerstoneTools.external.cornerstone = cornerstone;
+      cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+      cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+      cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+
+      // Configure webworker for image decoding
+      cornerstoneWADOImageLoader.webWorkerManager.initialize({
+        webWorkerPath: '/cornerstoneWADOImageLoaderWebWorker.js',
+        taskConfiguration: {
+          decodeTask: {
+            loadCodecsOnStartup: true,
+            initializeCodecsOnStartup: false,
+            codecsPath: '/cornerstoneWADOImageLoaderCodecs.js',
+          },
+        },
+      });
+
+      // Register the DICOM image loader
+      cornerstone.registerImageLoader('dicomFile', cornerstoneWADOImageLoader.wadouri.loadFileRequest);
+      
+      // Enable the element
+      cornerstone.enable(element);
+      
+      // Initialize tools
+      cornerstoneTools.init();
+      
+      // Add basic tools
+      cornerstoneTools.addTool(cornerstoneTools.PanTool);
+      cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
+      cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
+      
+      isInitialized.current = true;
+      console.log('DicomViewer initialized successfully');
+    } catch (error) {
+      console.error('Error initializing DicomViewer:', error);
+      toast({
+        title: "Error initializing DICOM viewer",
+        description: "There was an error initializing the DICOM viewer",
+        variant: "destructive"
+      });
+    }
 
     return () => {
       if (element) {
@@ -55,7 +81,10 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
       try {
         console.log('Loading image:', imageId);
         const image = await cornerstone.loadImage(imageId);
+        console.log('Image loaded successfully:', image);
+        
         await cornerstone.displayImage(element, image);
+        console.log('Image displayed successfully');
         
         const viewport = cornerstone.getViewport(element);
         if (viewport) {
@@ -69,7 +98,7 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
         cornerstoneTools.setToolActive('Zoom', { mouseButtonMask: 2 });
         cornerstoneTools.setToolActive('Wwwc', { mouseButtonMask: 4 });
       } catch (error) {
-        console.error('Error loading DICOM image:', error);
+        console.error('Error loading or displaying DICOM image:', error);
         toast({
           title: "Error loading DICOM image",
           description: "Failed to load or display the image",
