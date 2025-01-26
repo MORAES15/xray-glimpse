@@ -7,6 +7,7 @@ import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
+import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
@@ -18,17 +19,28 @@ const XRayViewer = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const [measureStart, setMeasureStart] = useState<{ x: number; y: number } | null>(null);
-  const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
-  const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
 
+  const {
+    measureStart,
+    measureEnd,
+    measureDistance,
+    isMeasuring,
+    handleMeasureClick,
+    toggleMeasuring,
+    resetMeasurement
+  } = useMeasurement();
+
   useEffect(() => {
     initializeDicomLoader();
   }, []);
+
+  useEffect(() => {
+    // Reset measurement when switching views
+    resetMeasurement();
+  }, [isGridView, resetMeasurement]);
 
   const handleImagesUploaded = (newImages: string[]) => {
     if (Array.isArray(newImages) && newImages.length > 0) {
@@ -96,32 +108,11 @@ const XRayViewer = () => {
     }));
   };
 
-  const calculateDistance = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    if (!start || !end) return "0";
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    return Math.sqrt(dx * dx + dy * dy).toFixed(2);
-  };
-
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
-    if (!isMeasuring) return;
-
-    const target = e.target as HTMLImageElement;
-    const rect = target.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
     if (isGridView && typeof clickedImageIndex === 'number') {
       setCurrentImageIndex(clickedImageIndex);
     }
-
-    if (!measureStart) {
-      setMeasureStart({ x, y });
-    } else {
-      setMeasureEnd({ x, y });
-      const distance = calculateDistance(measureStart, { x, y });
-      setMeasureDistance(distance);
-    }
+    handleMeasureClick(e, isGridView);
   };
 
   return (
@@ -130,7 +121,7 @@ const XRayViewer = () => {
         <div className="flex gap-4 flex-row md:flex-col">
           <XRayToolbar
             isMeasuring={isMeasuring}
-            setIsMeasuring={setIsMeasuring}
+            setIsMeasuring={toggleMeasuring}
             setZoom={setZoom}
             setPosition={setPosition}
             setIsDragging={setIsDragging}
