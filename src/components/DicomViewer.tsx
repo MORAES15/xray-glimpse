@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as cornerstone from 'cornerstone-core';
-import { initializeCornerstoneTools, setupCornerstoneElement, cleanupCornerstoneElement } from '../utils/cornerstoneSetup';
-import { useDicomImage } from '../hooks/useDicomImage';
+import { useToast } from './ui/use-toast';
 
 interface DicomViewerProps {
   imageId: string;
@@ -11,45 +10,49 @@ interface DicomViewerProps {
 
 const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
   const elementRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize tools once when component mounts
-    initializeCornerstoneTools();
-  }, []);
+    const initializeViewer = async () => {
+      if (!elementRef.current || !imageId) return;
 
-  useEffect(() => {
-    if (!elementRef.current) return;
+      try {
+        await cornerstone.enable(elementRef.current);
+        const image = await cornerstone.loadImage(imageId);
+        await cornerstone.displayImage(elementRef.current, image);
+        
+        // Set initial viewport settings
+        const viewport = cornerstone.getViewport(elementRef.current);
+        if (viewport) {
+          viewport.scale = zoom / 100;
+          viewport.translation.x = position.x;
+          viewport.translation.y = position.y;
+          cornerstone.setViewport(elementRef.current, viewport);
+        }
+      } catch (error) {
+        console.error('Error initializing DICOM viewer:', error);
+        toast({
+          title: "Error loading DICOM image",
+          description: "There was an error initializing the DICOM viewer",
+          variant: "destructive"
+        });
+      }
+    };
 
-    console.log('Setting up cornerstone element...');
-    setupCornerstoneElement(elementRef.current);
+    initializeViewer();
 
     return () => {
       if (elementRef.current) {
-        cleanupCornerstoneElement(elementRef.current);
+        cornerstone.disable(elementRef.current);
       }
     };
-  }, []);
-
-  const { error, isLoading } = useDicomImage({
-    element: elementRef.current,
-    imageId,
-    position,
-    zoom,
-  });
-
-  if (error) {
-    return <div className="text-red-500">Error loading DICOM image: {error}</div>;
-  }
-
-  if (isLoading) {
-    return <div className="text-white">Loading DICOM image...</div>;
-  }
+  }, [imageId, position, zoom]);
 
   return (
-    <div
+    <div 
       ref={elementRef}
-      className="w-full h-full"
-      style={{ minHeight: '400px' }}
+      className="dicom-image w-full h-full"
+      style={{ width: '100%', height: '100%' }}
     />
   );
 };

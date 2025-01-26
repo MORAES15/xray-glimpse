@@ -1,39 +1,67 @@
 import * as cornerstone from 'cornerstone-core';
-import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
-import dicomParser from 'dicom-parser';
+import * as dicomParser from 'dicom-parser';
 
 export const initializeDicomLoader = () => {
-  cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-  cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
-  cornerstone.registerImageLoader('wadouri', cornerstoneWADOImageLoader.wadouri.loadImage);
-  console.log('DICOM loader initialized');
+  cornerstone.registerImageLoader('dicomFile', loadImageFromArrayBuffer);
+};
+
+const loadImageFromArrayBuffer = async (imageId: string) => {
+  try {
+    const response = await fetch(imageId);
+    const arrayBuffer = await response.arrayBuffer();
+    const byteArray = new Uint8Array(arrayBuffer);
+    const dataSet = dicomParser.parseDicom(byteArray);
+
+    const pixelDataElement = dataSet.elements.x7fe00010;
+    const pixelData = new Uint16Array(arrayBuffer, pixelDataElement.dataOffset, pixelDataElement.length / 2);
+
+    const image = {
+      imageId,
+      minPixelValue: 0,
+      maxPixelValue: 4095, // Typical for 12-bit DICOM
+      slope: dataSet.floatString('x00281053', 1),
+      intercept: dataSet.floatString('x00281052', 0),
+      windowCenter: dataSet.floatString('x00281050', 2048),
+      windowWidth: dataSet.floatString('x00281051', 4096),
+      rows: dataSet.uint16('x00280010'),
+      columns: dataSet.uint16('x00280011'),
+      height: dataSet.uint16('x00280010'),
+      width: dataSet.uint16('x00280011'),
+      color: false,
+      columnPixelSpacing: dataSet.floatString('x00280030', 1),
+      rowPixelSpacing: dataSet.floatString('x00280030', 1),
+      sizeInBytes: byteArray.length,
+      getPixelData: () => pixelData
+    };
+
+    return image;
+  } catch (error) {
+    console.error('Error loading DICOM image:', error);
+    throw error;
+  }
 };
 
 export const loadDicomFile = async (file: File): Promise<string> => {
-  const imageId = `wadouri:${URL.createObjectURL(file)}`;
-  console.log('Created image ID:', imageId);
-  return imageId;
+  const imageId = URL.createObjectURL(file);
+  return `dicomFile:${imageId}`;
 };
 
 export const isDicomImage = (imageId?: string): boolean => {
-  return !!imageId && imageId.startsWith('wadouri:');
+  if (!imageId) return false;
+  return imageId.startsWith('dicomFile:');
 };
 
 export const getDicomMetadata = (imageId: string) => {
   try {
-    const element = document.createElement('div');
-    cornerstone.enable(element);
-    const image = cornerstone.imageCache.getImageLoadObject(imageId);
+    const element = document.querySelector('.dicom-image') as HTMLElement;
+    if (!element) return null;
     
-    if (!image || !image.image) {
-      console.log('No image data available for metadata');
-      return null;
-    }
-
+    const viewport = cornerstone.getViewport(element);
     return {
-      windowCenter: image.image.windowCenter,
-      windowWidth: image.image.windowWidth,
-      scale: image.image.scale || 1.0
+      windowCenter: viewport?.voi?.windowCenter,
+      windowWidth: viewport?.voi?.windowWidth,
+      scale: viewport?.scale,
+      translation: viewport?.translation
     };
   } catch (error) {
     console.error('Error getting DICOM metadata:', error);
