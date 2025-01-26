@@ -7,6 +7,7 @@ import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
+import XRayActionButtons from './XRayActionButtons';
 import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 
@@ -179,6 +180,7 @@ const XRayViewer = () => {
             setExposure={setExposure}
             currentImageId={images[currentImageIndex]}
           />
+          <XRayActionButtons />
           {isDicomImage(images[currentImageIndex]) && (
             <DicomMetadataPanel imageId={images[currentImageIndex]} />
           )}
