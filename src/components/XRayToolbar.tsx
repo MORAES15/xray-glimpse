@@ -1,7 +1,26 @@
 import React from 'react';
 import { Button } from './ui/button';
-import { ZoomIn, Ruler, Maximize, Move, Grid2X2 } from 'lucide-react';
+import { 
+  ZoomIn, 
+  Ruler, 
+  Maximize, 
+  Move, 
+  Grid2X2,
+  Printer,
+  Share2,
+  FileExport,
+  Database,
+  Network,
+  Server,
+  AlertCircle
+} from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 import { useToast } from './ui/use-toast';
 import { isDicomImage } from '../utils/dicomLoader';
 
@@ -93,26 +112,84 @@ const XRayToolbar = ({
         toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
       }
     },
+    { 
+      icon: <Printer size={20} className="text-white" />, 
+      name: 'Print', 
+      action: () => {
+        window.print();
+        toast({ title: "Printing..." });
+      }
+    },
+    { 
+      icon: <Share2 size={20} className="text-white" />, 
+      name: 'Share', 
+      action: () => {
+        toast({ title: "Share feature coming soon" });
+      }
+    },
+    { 
+      icon: <FileExport size={20} className="text-white" />, 
+      name: 'Export DICOM', 
+      action: () => {
+        toast({ title: "DICOM export feature coming soon" });
+      }
+    },
+    { 
+      icon: <Database size={20} className="text-white" />, 
+      name: 'Export Data', 
+      action: () => {
+        toast({ title: "Data export feature coming soon" });
+      }
+    },
+    { 
+      icon: <Network size={20} className="text-white" />, 
+      name: 'Connect Network', 
+      action: () => {
+        toast({ title: "Network connection feature coming soon" });
+      }
+    },
+    { 
+      icon: <Server size={20} className="text-white" />, 
+      name: 'Connect PACS', 
+      action: () => {
+        toast({ title: "PACS connection feature coming soon" });
+      }
+    },
+    { 
+      icon: <AlertCircle size={20} className="text-white" />, 
+      name: 'Report Problem', 
+      action: () => {
+        toast({ title: "Problem report feature coming soon" });
+      }
+    },
   ];
 
   return (
-    <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
-      {tools.map((tool, index) => (
-        <div key={index}>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={tool.action}
-            className={`hover:bg-medical/20 ${
-              (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
-            }`}
-            title={tool.name}
-          >
-            {tool.icon}
-          </Button>
-        </div>
-      ))}
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn fixed left-4 top-1/2 -translate-y-1/2 z-50">
+        {tools.map((tool, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={tool.action}
+                  className={`hover:bg-medical/20 ${
+                    (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
+                  }`}
+                >
+                  {tool.icon}
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
+              <p>{tool.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 };
 
