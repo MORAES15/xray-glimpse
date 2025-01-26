@@ -13,17 +13,10 @@ let classifier: any = null;
 
 export const initializeLLM = async () => {
   try {
-    // Using a public model that doesn't require authentication
     classifier = await pipeline(
       "text-generation",
-      "distilbert-base-uncased",
-      { 
-        device: "cpu",
-        model: {
-          revision: "main",
-          trust_remote_code: true
-        }
-      }
+      "onnx-community/bert-base-uncased",
+      { device: "cpu" }
     );
     console.log("LLM initialized successfully");
     return true;
