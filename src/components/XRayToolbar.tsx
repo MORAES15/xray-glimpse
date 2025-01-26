@@ -13,9 +13,12 @@ import {
   Network,
   Server,
   AlertCircle,
-  Download
+  Download,
+  SlidersHorizontal
 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
+import VolumetricAnalysisButton from './toolbar/VolumetricAnalysisButton';
+import CommentButton from './toolbar/CommentButton';
 import {
   Tooltip,
   TooltipContent,
@@ -72,6 +75,16 @@ const XRayToolbar = ({
         });
       }
     },
+    {
+      icon: <SlidersHorizontal size={20} className="text-white" />,
+      name: 'Adjust Parameters',
+      action: () => {
+        toast({ 
+          title: "Parameter Adjustment",
+          description: "Use the sliders to adjust window/level parameters"
+        });
+      }
+    },
     { 
       icon: <ZoomIn size={20} className="text-white" />, 
       name: 'Zoom', 
@@ -118,6 +131,14 @@ const XRayToolbar = ({
   ];
 
   const additionalTools = [
+    {
+      component: <VolumetricAnalysisButton />,
+      name: 'Volumetric Analysis'
+    },
+    {
+      component: <CommentButton />,
+      name: 'Add Comment'
+    },
     { 
       icon: <Download size={20} className="text-white" />, 
       name: 'Export Image', 
@@ -204,14 +225,16 @@ const XRayToolbar = ({
           <Tooltip key={index}>
             <TooltipTrigger asChild>
               <div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={tool.action}
-                  className="hover:bg-medical/20"
-                >
-                  {tool.icon}
-                </Button>
+                {tool.component || (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={tool.action}
+                    className="hover:bg-medical/20"
+                  >
+                    {tool.icon}
+                  </Button>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
