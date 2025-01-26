@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '../ui/button';
-import { Cube } from 'lucide-react';
+import { Box } from 'lucide-react';
 import { useToast } from '../ui/use-toast';
 
 const VolumetricAnalysisButton = () => {
@@ -21,7 +21,7 @@ const VolumetricAnalysisButton = () => {
       className="hover:bg-medical/20"
       title="Volumetric Analysis"
     >
-      <Cube size={20} className="text-white" />
+      <Box size={20} className="text-white" />
     </Button>
   );
 };
