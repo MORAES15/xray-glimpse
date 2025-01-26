@@ -51,7 +51,7 @@
  
 @layer components {
   .glass-dark {
-    @apply bg-black/10 backdrop-blur-lg border border-border;
+    @apply bg-background/10 backdrop-blur-lg border border-border;
   }
   
   .heatmap-filter {
@@ -59,7 +59,7 @@
   }
 }
 
-/* Mantenha as animações e utilities abaixo */
+/* Keep the animations and utilities below */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

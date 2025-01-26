@@ -24,11 +24,19 @@ const XRayControlPanel = ({
   return (
     <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn hidden md:block">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">MEDFINDER</h2>
+        <div className="flex items-center gap-2">
+          <img 
+            src="/lovable-uploads/c46db37c-b7db-4175-b818-0d049fb39b1c.png" 
+            alt="Medfinder Logo" 
+            className="w-8 h-8"
+          />
+          <h2 className="text-xl font-semibold text-white">MEDFINDER</h2>
+        </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="text-foreground"
         >
           {theme === 'dark' ? <Sun /> : <Moon />}
         </Button>
@@ -36,7 +44,7 @@ const XRayControlPanel = ({
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm text-gray-300">Zoom: {zoom}%</label>
+          <label className="text-sm text-foreground">Zoom: {zoom}%</label>
           <Slider
             value={[zoom]}
             onValueChange={([value]) => setZoom(value)}
@@ -50,7 +58,7 @@ const XRayControlPanel = ({
 
       <Button
         variant="outline"
-        className="w-full"
+        className="w-full text-foreground border-border hover:bg-accent"
         onClick={() => setShowHeatmap(!showHeatmap)}
       >
         {showHeatmap ? 'Disable Heatmap' : 'Enable Heatmap'}
@@ -64,7 +72,7 @@ const XRayControlPanel = ({
           onChange={onFileUpload}
           className="hidden"
         />
-        <div className="flex items-center justify-center p-4 border-2 border-dashed border-medical/50 rounded-lg cursor-pointer hover:bg-medical/10 transition-colors">
+        <div className="flex items-center justify-center p-4 border-2 border-dashed border-medical/50 rounded-lg cursor-pointer hover:bg-medical/10 transition-colors text-foreground">
           <Upload className="w-5 h-5 mr-2 text-medical" />
           <span className="text-sm font-medium">Upload X-Ray Images</span>
         </div>
