@@ -7,7 +7,7 @@ interface MeasurementOverlayProps {
   measureDistance: string | null;
   position: { x: number; y: number };
   zoom: number;
-  isHovered: boolean;
+  isHovered?: boolean;
 }
 
 const MeasurementOverlay = ({
@@ -20,16 +20,10 @@ const MeasurementOverlay = ({
 }: MeasurementOverlayProps) => {
   if (!measureStart || !measureEnd) return null;
 
-  const overlayStyle = {
-    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`,
-    transformOrigin: '0 0'
-  };
-
   return (
-    <div className="absolute inset-0 pointer-events-none" style={overlayStyle}>
+    <div className="absolute inset-0 pointer-events-none">
       <svg
-        className="absolute inset-0 measurement-overlay"
-        style={{ width: '100%', height: '100%' }}
+        className="absolute inset-0 measurement-overlay w-full h-full"
         preserveAspectRatio="none"
       >
         <MeasurementLine start={measureStart} end={measureEnd} />

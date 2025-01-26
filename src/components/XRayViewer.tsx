@@ -9,6 +9,7 @@ import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
 import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
+import MeasurementOverlay from './MeasurementOverlay';
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -299,7 +300,7 @@ const XRayViewer = () => {
                       zoom={zoom}
                     />
                   ) : (
-                    <div className="image-container">
+                    <div className="image-container relative">
                       <img 
                         ref={imageRef}
                         src={images[currentImageIndex]} 
@@ -316,49 +317,13 @@ const XRayViewer = () => {
                           transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
                         }}
                       />
-                    </div>
-                  )}
-                  {measureStart && measureEnd && (
-                    <svg
-                      className="absolute inset-0 pointer-events-none measurement-overlay"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
-                      }}
-                    >
-                      <line
-                        x1={`${measureStart.x}%`}
-                        y1={`${measureStart.y}%`}
-                        x2={`${measureEnd.x}%`}
-                        y2={`${measureEnd.y}%`}
-                        stroke="#0EA5E9"
-                        strokeWidth="2"
+                      <MeasurementOverlay
+                        measureStart={measureStart}
+                        measureEnd={measureEnd}
+                        measureDistance={measureDistance}
+                        position={position}
+                        zoom={zoom}
                       />
-                      <circle
-                        cx={`${measureStart.x}%`}
-                        cy={`${measureStart.y}%`}
-                        r="4"
-                        fill="#0EA5E9"
-                      />
-                      <circle
-                        cx={`${measureEnd.x}%`}
-                        cy={`${measureEnd.y}%`}
-                        r="4"
-                        fill="#0EA5E9"
-                      />
-                    </svg>
-                  )}
-                  {measureDistance && (
-                    <div 
-                      className="absolute bg-black/60 px-2 py-1 rounded text-sm text-white"
-                      style={{
-                        left: `${(measureStart?.x || 0 + (measureEnd?.x || 0)) / 2}%`,
-                        top: `${(measureStart?.y || 0 + (measureEnd?.y || 0)) / 2}%`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    >
-                      {measureDistance}px
                     </div>
                   )}
                 </div>
