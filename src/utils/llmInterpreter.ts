@@ -13,11 +13,7 @@ let classifier: any = null;
 
 export const initializeLLM = async () => {
   try {
-    classifier = await pipeline("text-generation", {
-      model: "distilgpt2",
-      task: "text-generation",
-      quantized: false
-    });
+    classifier = await pipeline("text-generation", "distilgpt2");
     console.log("LLM initialized successfully");
     return true;
   } catch (error) {
