@@ -29,37 +29,45 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             const imageId = await loadDicomFile(file);
             if (imageId) {
               newImages.push(imageId);
-              toast({
-                title: "DICOM file loaded",
-                description: `Successfully loaded ${file.name}`,
-              });
+              console.log('DICOM file loaded:', file.name);
             }
           } else {
             const imageUrl = URL.createObjectURL(file);
             newImages.push(imageUrl);
-            toast({
-              title: "Image loaded",
-              description: `Successfully loaded ${file.name}`,
-            });
+            console.log('Image file loaded:', file.name);
           }
 
-          // Select random diagnostic message
           const randomMessage = diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
+          console.log('Generated diagnostic message:', randomMessage);
+
+          // Dispatch message event
+          const message = {
+            id: Date.now().toString(),
+            text: randomMessage,
+            sender: 'JamesBot',
+            timestamp: new Date()
+          };
           
-          // Create and dispatch the event properly
-          const messageEvent = new CustomEvent('newChatMessage', {
-            detail: {
-              message: {
-                id: Date.now().toString(),
-                text: randomMessage,
-                sender: 'JamesBot',
-                timestamp: new Date()
-              }
-            }
+          console.log('Dispatching message:', message);
+          
+          // Use direct DOM manipulation to ensure the message appears
+          const messages = document.querySelector('.messages-container');
+          if (messages) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            messageDiv.textContent = randomMessage;
+            messages.appendChild(messageDiv);
+          }
+
+          // Also dispatch the event for the React component
+          document.dispatchEvent(new CustomEvent('newChatMessage', {
+            detail: { message }
+          }));
+
+          toast({
+            title: "Image loaded",
+            description: `Successfully loaded ${file.name}`,
           });
-          
-          // Actually dispatch the event
-          document.dispatchEvent(messageEvent);
 
         } catch (error) {
           console.error('Error loading file:', error);
