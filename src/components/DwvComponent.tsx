@@ -31,11 +31,14 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
           '*': [{
             divId: 'dwv',
             orientation: 'axial',
-            colourMap: dwv.tool.colourMaps[0],
+            colourMap: 'plain',
             opacity: 1.0
           }]
         },
-        tools: tools
+        tools: tools,
+        binders: [],
+        viewOnFirstLoadItem: true,
+        defaultCharacterSet: 'UTF-8'
       });
     }
 
