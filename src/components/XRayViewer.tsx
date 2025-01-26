@@ -20,12 +20,15 @@ const XRayViewer = () => {
   const [noiseCancellation, setNoiseCancellation] = useState(50);
   const { toast } = useToast();
 
-  const handleImagesUploaded = (newFiles: File[]) => {
-    setFiles(prevFiles => {
-      const updatedFiles = [...prevFiles, ...newFiles];
-      setCurrentFileIndex(updatedFiles.length - 1);
-      return updatedFiles;
-    });
+  const handleImagesUploaded = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const newFiles = Array.from(event.target.files);
+      setFiles(prevFiles => {
+        const updatedFiles = [...prevFiles, ...newFiles];
+        setCurrentFileIndex(updatedFiles.length - 1);
+        return updatedFiles;
+      });
+    }
   };
 
   return (

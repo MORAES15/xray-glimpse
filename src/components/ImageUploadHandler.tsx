@@ -3,21 +3,19 @@ import { Upload } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 
 interface ImageUploadHandlerProps {
-  onImagesUploaded: (files: File[]) => void;
+  onImagesUploaded: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const fileArray = Array.from(files);
-      onImagesUploaded(fileArray);
+    if (event.target.files && event.target.files.length > 0) {
+      onImagesUploaded(event);
       
       toast({
         title: "Files loaded",
-        description: `Successfully loaded ${fileArray.length} file(s)`,
+        description: `Successfully loaded ${event.target.files.length} file(s)`,
       });
     }
   };

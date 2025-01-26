@@ -31,7 +31,7 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
           '*': [{
             divId: 'dwv',
             orientation: 'axial',
-            colourMap: 'plain',
+            colourMap: dwv.tool.colourMaps[0],
             opacity: 1.0
           }]
         },
