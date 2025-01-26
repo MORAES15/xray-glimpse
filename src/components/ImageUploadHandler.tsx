@@ -9,7 +9,7 @@ interface ImageUploadHandlerProps {
 const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
   const { toast } = useToast();
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
       const fileArray = Array.from(files);
