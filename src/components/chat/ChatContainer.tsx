@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
 import ChatMessage, { type ChatMessage as ChatMessageType } from './ChatMessage';
 import { useToast } from '../ui/use-toast';
 
