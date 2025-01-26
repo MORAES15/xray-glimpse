@@ -37,14 +37,17 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
           } else {
             const imageUrl = URL.createObjectURL(file);
             newImages.push(imageUrl);
+            toast({
+              title: "Image loaded",
+              description: `Successfully loaded ${file.name}`,
+            });
           }
 
           // Add a random diagnostic message to the chat
           const randomMessage = diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
           console.log('Dispatching message:', randomMessage);
           
-          // Create and dispatch the custom event
-          window.dispatchEvent(new CustomEvent('newChatMessage', {
+          const messageEvent = new CustomEvent('newChatMessage', {
             detail: {
               message: {
                 id: Date.now().toString(),
@@ -53,7 +56,10 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
                 timestamp: new Date()
               }
             }
-          }));
+          });
+          
+          console.log('Dispatching event:', messageEvent);
+          window.dispatchEvent(messageEvent);
 
         } catch (error) {
           console.error('Error loading file:', error);

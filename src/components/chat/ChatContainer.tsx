@@ -11,14 +11,20 @@ const ChatContainer = () => {
   useEffect(() => {
     const handleNewMessage = (event: CustomEvent<{ message: ChatMessageType }>) => {
       console.log('New message received in ChatContainer:', event.detail.message);
-      setMessages(prev => [...prev, event.detail.message]);
+      setMessages(prevMessages => {
+        console.log('Previous messages:', prevMessages);
+        const newMessages = [...prevMessages, event.detail.message];
+        console.log('New messages array:', newMessages);
+        return newMessages;
+      });
     };
 
-    // Add event listener to window instead of document
     window.addEventListener('newChatMessage', handleNewMessage as EventListener);
+    console.log('Event listener added to window');
 
     return () => {
       window.removeEventListener('newChatMessage', handleNewMessage as EventListener);
+      console.log('Event listener removed from window');
     };
   }, []);
 
