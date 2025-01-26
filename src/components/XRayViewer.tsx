@@ -140,13 +140,17 @@ const XRayViewer = () => {
     const target = e.target as HTMLImageElement;
     const rect = target.getBoundingClientRect();
     
-    // Get the scaled dimensions
-    const scaleX = target.naturalWidth / rect.width;
-    const scaleY = target.naturalHeight / rect.height;
+    // Calculate the scaled dimensions
+    const scaleX = target.naturalWidth / (rect.width * (zoom / 100));
+    const scaleY = target.naturalHeight / (rect.height * (zoom / 100));
     
-    // Calculate position relative to the image
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    // Adjust for current position and zoom
+    const adjustedX = (e.clientX - rect.left - position.x) * scaleX;
+    const adjustedY = (e.clientY - rect.top - position.y) * scaleY;
+    
+    // Convert to percentage
+    const x = (adjustedX / target.naturalWidth) * 100;
+    const y = (adjustedY / target.naturalHeight) * 100;
     
     return { x, y };
   };
@@ -172,7 +176,7 @@ const XRayViewer = () => {
         const dx = pos.x - measureStart.x;
         const dy = pos.y - measureStart.y;
         const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
-        setMeasureDistance(`${distance}`);
+        setMeasureDistance(distance);
       }
     } else {
       handleMeasureClick(e, isGridView);
