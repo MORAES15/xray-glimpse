@@ -15,35 +15,36 @@ export const useDicomImage = ({ element, imageId, position, zoom }: UseDicomImag
   useEffect(() => {
     if (!element || !imageId) return;
 
-    const loadAndDisplayImage = async () => {
+    const loadImage = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        console.log('Loading DICOM image:', imageId);
+        console.log('Loading image:', imageId);
         const image = await cornerstone.loadImage(imageId);
-        console.log('DICOM image loaded:', image);
         
+        console.log('Displaying image');
         await cornerstone.displayImage(element, image);
-        console.log('DICOM image displayed');
         
+        // Update viewport
         const viewport = cornerstone.getViewport(element);
         if (viewport) {
           viewport.scale = zoom / 100;
           viewport.translation = position;
           cornerstone.setViewport(element, viewport);
-          console.log('Viewport updated:', viewport);
         }
+        
+        console.log('Image displayed successfully');
       } catch (err) {
-        console.error('Error in useDicomImage:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load or display image');
+        console.error('Error loading/displaying image:', err);
+        setError('Failed to load or display image');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadAndDisplayImage();
-  }, [element, imageId, position, zoom]);
+    loadImage();
+  }, [element, imageId, position.x, position.y, zoom]);
 
   return { error, isLoading };
 };

@@ -1,50 +1,23 @@
 import * as cornerstone from 'cornerstone-core';
-import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
-import * as cornerstoneMath from 'cornerstone-math';
 import * as cornerstoneTools from 'cornerstone-tools';
-import dicomParser from 'dicom-parser';
 
 export const initializeCornerstoneTools = () => {
-  // Initialize cornerstone and its dependencies
+  // Initialize cornerstone tools
   cornerstoneTools.external.cornerstone = cornerstone;
-  cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
-  cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-  cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
-
-  // Configure webworker for image decoding
-  cornerstoneWADOImageLoader.webWorkerManager.initialize({
-    webWorkerPath: '/cornerstoneWADOImageLoaderWebWorker.js',
-    taskConfiguration: {
-      decodeTask: {
-        loadCodecsOnStartup: true,
-        initializeCodecsOnStartup: false,
-        codecsPath: '/cornerstoneWADOImageLoaderCodecs.js',
-      },
-    },
-  });
-
-  // Register the DICOM image loader
-  cornerstone.registerImageLoader('wadouri', cornerstoneWADOImageLoader.wadouri.loadImage);
-  cornerstone.registerImageLoader('dicomweb', cornerstoneWADOImageLoader.wadouri.loadImage);
-  
-  // Initialize tools
   cornerstoneTools.init();
+  console.log('Cornerstone tools initialized');
 };
 
 export const setupCornerstoneElement = (element: HTMLElement) => {
+  // Enable the element for cornerstone
   cornerstone.enable(element);
-  
-  // Add basic tools
-  cornerstoneTools.addTool(cornerstoneTools.PanTool);
-  cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
-  cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
-  
-  // Activate tools
-  cornerstoneTools.setToolActive('Pan', { mouseButtonMask: 1 });
-  cornerstoneTools.setToolActive('Zoom', { mouseButtonMask: 2 });
-  cornerstoneTools.setToolActive('Wwwc', { mouseButtonMask: 4 });
+  console.log('Cornerstone element enabled');
 };
 
 export const cleanupCornerstoneElement = (element: HTMLElement) => {
-  cornerstone.disable(element);
+  try {
+    cornerstone.disable(element);
+  } catch (error) {
+    console.error('Error cleaning up cornerstone element:', error);
+  }
 };
