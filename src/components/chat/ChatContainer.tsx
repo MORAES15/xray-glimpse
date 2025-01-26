@@ -11,21 +11,12 @@ const ChatContainer = () => {
   useEffect(() => {
     const handleNewMessage = (event: Event) => {
       const customEvent = event as CustomEvent<{ message: ChatMessageType }>;
-      console.log('Received new message event:', customEvent.detail);
-      
-      setMessages(prevMessages => {
-        const newMessages = [...prevMessages, customEvent.detail.message];
-        console.log('Updated messages array:', newMessages);
-        return newMessages;
-      });
+      setMessages(prevMessages => [...prevMessages, customEvent.detail.message]);
     };
 
     window.addEventListener('newChatMessage', handleNewMessage);
-    console.log('Event listener added');
-
     return () => {
       window.removeEventListener('newChatMessage', handleNewMessage);
-      console.log('Event listener removed');
     };
   }, []);
 
@@ -52,15 +43,13 @@ const ChatContainer = () => {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-foreground">Chat</h2>
       <div className="h-[400px] bg-[#F1F0FB] dark:bg-background/20 rounded-lg p-4 overflow-y-auto">
-        <div className="space-y-4">
-          {messages.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Upload an X-Ray image to start the analysis</p>
-          ) : (
-            messages.map(message => (
-              <ChatMessage key={message.id} message={message} />
-            ))
-          )}
-        </div>
+        {messages.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Upload an X-Ray image to start the analysis</p>
+        ) : (
+          messages.map(message => (
+            <ChatMessage key={message.id} message={message} />
+          ))
+        )}
       </div>
       <div className="flex gap-2">
         <input
