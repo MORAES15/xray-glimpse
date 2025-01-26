@@ -180,7 +180,6 @@ const XRayViewer = () => {
             setExposure={setExposure}
             currentImageId={images[currentImageIndex]}
           />
-          <XRayActionButtons />
           {isDicomImage(images[currentImageIndex]) && (
             <DicomMetadataPanel imageId={images[currentImageIndex]} />
           )}
@@ -298,7 +297,8 @@ const XRayViewer = () => {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4">
+        <XRayActionButtons />
         <XRayControlPanel
           zoom={zoom}
           setZoom={setZoom}

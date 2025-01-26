@@ -72,8 +72,8 @@ const XRayToolbar = ({
       icon: <Move size={20} className="text-white" />, 
       name: 'Pan', 
       action: () => {
-        setIsDragging(false);
-        toast({ title: "Pan mode activated" });
+        setIsDragging(true);
+        toast({ title: "Pan mode activated - Click and drag to move the image" });
       }
     },
     { 
@@ -98,7 +98,7 @@ const XRayToolbar = ({
   return (
     <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
       {tools.map((tool, index) => (
-        <div key={index}>
+        <div key={index} className="relative group">
           <Button
             variant="ghost"
             size="icon"
@@ -110,6 +110,9 @@ const XRayToolbar = ({
           >
             {tool.icon}
           </Button>
+          <span className="absolute left-full ml-2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            {tool.name}
+          </span>
         </div>
       ))}
     </div>
