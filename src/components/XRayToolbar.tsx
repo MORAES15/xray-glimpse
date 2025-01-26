@@ -112,6 +112,9 @@ const XRayToolbar = ({
         toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
       }
     },
+  ];
+
+  const additionalTools = [
     { 
       icon: <Printer size={20} className="text-white" />, 
       name: 'Print', 
@@ -178,6 +181,26 @@ const XRayToolbar = ({
                   className={`hover:bg-medical/20 ${
                     (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
                   }`}
+                >
+                  {tool.icon}
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
+              <p>{tool.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+        <div className="w-full h-px bg-border/30" />
+        {additionalTools.map((tool, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={tool.action}
+                  className="hover:bg-medical/20"
                 >
                   {tool.icon}
                 </Button>
