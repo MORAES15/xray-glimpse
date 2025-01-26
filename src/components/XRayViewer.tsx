@@ -7,7 +7,6 @@ import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
-import Chat from './Chat';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
@@ -266,7 +265,6 @@ const XRayViewer = () => {
           setShowHeatmap={setShowHeatmap}
           onFileUpload={handleFileUpload}
         />
-        <Chat />
       </div>
     </div>
   );
