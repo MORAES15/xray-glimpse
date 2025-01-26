@@ -27,7 +27,7 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
     if (!dwvApp.current) {
       dwvApp.current = new dwv.App();
       dwvApp.current.init({
-        containerDivId: 'dwv',
+        dataViewConfigs: { '*': [{ divId: 'dwv' }] },
         tools: tools
       });
     }
