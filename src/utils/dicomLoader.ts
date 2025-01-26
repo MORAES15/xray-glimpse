@@ -18,7 +18,8 @@ export const initializeDicomLoader = () => {
     };
     
     cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
-    cornerstone.registerImageLoader('dicomFile', loadImageFromArrayBuffer);
+    cornerstone.registerImageLoader('wadouri', cornerstoneWADOImageLoader.wadouri.loadImage);
+    cornerstone.registerImageLoader('dicomfile', loadImageFromBlob);
     console.log('DICOM loader initialized successfully');
   } catch (error) {
     console.error('Error initializing DICOM loader:', error);
@@ -26,68 +27,62 @@ export const initializeDicomLoader = () => {
   }
 };
 
-const loadImageFromArrayBuffer = async (imageId: string) => {
+const loadImageFromBlob = (imageId: string) => {
+  const blob = dataUriToBlob(imageId.replace('dicomfile:', ''));
+  return cornerstoneWADOImageLoader.wadouri.loadImage(imageId, { blob });
+};
+
+const dataUriToBlob = (dataUri: string): Blob => {
   try {
-    console.log('Loading image from array buffer:', imageId);
-    const cleanImageId = imageId.replace('dicomFile:', '');
-    const response = await fetch(cleanImageId);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // If it's already a blob URL, fetch it and return the blob
+    if (dataUri.startsWith('blob:')) {
+      return fetch(dataUri).then(r => r.blob());
     }
     
-    const arrayBuffer = await response.arrayBuffer();
-    const byteArray = new Uint8Array(arrayBuffer);
+    // Otherwise, convert data URI to blob
+    const byteString = atob(dataUri.split(',')[1]);
+    const mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
     
-    try {
-      const dataSet = dicomParser.parseDicom(byteArray);
-      console.log('DICOM data parsed successfully');
-
-      const pixelDataElement = dataSet.elements.x7fe00010;
-      if (!pixelDataElement) {
-        throw new Error('No pixel data found in DICOM file');
-      }
-
-      const pixelData = new Uint16Array(arrayBuffer, pixelDataElement.dataOffset, pixelDataElement.length / 2);
-      const rows = dataSet.uint16('x00280010');
-      const columns = dataSet.uint16('x00280011');
-
-      return {
-        imageId: cleanImageId,
-        minPixelValue: 0,
-        maxPixelValue: 4095,
-        slope: dataSet.floatString('x00281053', 1),
-        intercept: dataSet.floatString('x00281052', 0),
-        windowCenter: dataSet.floatString('x00281050', 2048),
-        windowWidth: dataSet.floatString('x00281051', 4096),
-        getPixelData: () => pixelData,
-        rows,
-        columns,
-        height: rows,
-        width: columns,
-        color: false,
-        columnPixelSpacing: dataSet.floatString('x00280030', 1),
-        rowPixelSpacing: dataSet.floatString('x00280030', 1),
-        sizeInBytes: byteArray.length
-      };
-    } catch (parseError) {
-      console.error('Error parsing DICOM data:', parseError);
-      throw parseError;
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
     }
+    
+    return new Blob([ab], { type: mimeString });
   } catch (error) {
-    console.error('Error loading DICOM image:', error);
+    console.error('Error converting data URI to blob:', error);
     throw error;
   }
 };
 
 export const loadDicomFile = async (file: File): Promise<string> => {
-  const imageId = URL.createObjectURL(file);
-  return `dicomFile:${imageId}`;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      if (!e.target?.result) {
+        reject(new Error('Failed to read file'));
+        return;
+      }
+      
+      const arrayBuffer = e.target.result as ArrayBuffer;
+      const blob = new Blob([arrayBuffer], { type: file.type });
+      const imageId = `dicomfile:${URL.createObjectURL(blob)}`;
+      resolve(imageId);
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Error reading file'));
+    };
+    
+    reader.readAsArrayBuffer(file);
+  });
 };
 
 export const isDicomImage = (imageId?: string): boolean => {
   if (!imageId) return false;
-  return imageId.startsWith('dicomFile:');
+  return imageId.startsWith('dicomfile:');
 };
 
 export const getDicomMetadata = (imageId: string) => {
