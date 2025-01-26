@@ -35,15 +35,26 @@ const XRayControlPanel = ({
           </div>
           <h2 className="text-4xl font-bold text-foreground tracking-wide">MEDFINDER</h2>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="text-foreground hover:text-foreground/80"
-        >
-          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
       </div>
+
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        className="w-full text-foreground border-border hover:bg-accent flex items-center justify-center gap-2"
+      >
+        {theme === 'dark' ? (
+          <>
+            <Sun className="h-5 w-5" />
+            <span>Switch to Light Mode</span>
+          </>
+        ) : (
+          <>
+            <Moon className="h-5 w-5" />
+            <span>Switch to Dark Mode</span>
+          </>
+        )}
+      </Button>
 
       <div className="space-y-4">
         <div className="space-y-2">

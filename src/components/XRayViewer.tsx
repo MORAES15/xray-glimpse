@@ -109,6 +109,11 @@ const XRayViewer = () => {
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
+    if (e.button === 2) { // Right click
+      toggleMeasuring(false);
+      return;
+    }
+    
     if (isGridView && typeof clickedImageIndex === 'number') {
       setCurrentImageIndex(clickedImageIndex);
     }
@@ -116,7 +121,7 @@ const XRayViewer = () => {
   };
 
   return (
-    <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
+    <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
         <div className="flex gap-4 flex-row md:flex-col">
           <XRayToolbar
