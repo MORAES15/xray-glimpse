@@ -27,16 +27,17 @@ export const initializeDicomLoader = () => {
   }
 };
 
-const loadImageFromBlob = (imageId: string) => {
-  const blob = dataUriToBlob(imageId.replace('dicomfile:', ''));
+const loadImageFromBlob = async (imageId: string) => {
+  const blob = await dataUriToBlob(imageId.replace('dicomfile:', ''));
   return cornerstoneWADOImageLoader.wadouri.loadImage(imageId, { blob });
 };
 
-const dataUriToBlob = (dataUri: string): Blob => {
+const dataUriToBlob = async (dataUri: string): Promise<Blob> => {
   try {
     // If it's already a blob URL, fetch it and return the blob
     if (dataUri.startsWith('blob:')) {
-      return fetch(dataUri).then(r => r.blob());
+      const response = await fetch(dataUri);
+      return await response.blob();
     }
     
     // Otherwise, convert data URI to blob
