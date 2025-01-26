@@ -54,9 +54,11 @@ const ChatContainer = () => {
         {messages.length === 0 ? (
           <p className="text-muted-foreground text-sm">Upload an X-Ray image to start the analysis</p>
         ) : (
-          messages.map(message => (
-            <ChatMessage key={message.id} message={message} />
-          ))
+          <div className="space-y-4">
+            {messages.map(message => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+          </div>
         )}
       </div>
       <div className="flex gap-2">
