@@ -8,26 +8,28 @@ import { useToast } from './ui/use-toast';
 // Initialize cornerstone configuration
 const initializeCornerstoneConfig = () => {
   try {
-    // Initialize cornerstone core
+    // Initialize cornerstone core first
     cornerstone.events.addEventListener('cornerstoneimageloadprogress', (event: any) => {
       console.log('Image Load Progress:', event);
     });
 
-    // Initialize external modules
+    // Set external dependencies for cornerstone tools
     cornerstoneTools.external.cornerstone = cornerstone;
     cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
     
-    // Initialize image loader
+    // Initialize WADO image loader
     cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
     cornerstoneWADOImageLoader.external.dicomParser = cornerstoneWADOImageLoader.wadors.dicomParser;
+    
+    // Initialize tools configuration
+    cornerstoneTools.init({
+      showSVGCursors: true,
+    });
     
     // Set maximum cache size
     cornerstone.imageCache.setMaximumSizeBytes(83886080); // 80 MB
     
-    // Initialize tools
-    cornerstoneTools.init();
-
-    // Add tools that we want to use
+    // Add tools after initialization
     cornerstoneTools.addTool(cornerstoneTools.PanTool);
     cornerstoneTools.addTool(cornerstoneTools.ZoomTool);
     cornerstoneTools.addTool(cornerstoneTools.WwwcTool);
@@ -52,6 +54,7 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
   const hasInitialized = useRef(false);
 
   useEffect(() => {
+    const element = elementRef.current;
     if (!hasInitialized.current) {
       try {
         initializeCornerstoneConfig();
@@ -68,9 +71,8 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
     }
 
     return () => {
-      // Cleanup on unmount
-      if (elementRef.current) {
-        cornerstone.disable(elementRef.current);
+      if (element) {
+        cornerstone.disable(element);
       }
     };
   }, []);
@@ -85,8 +87,10 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
       try {
         const element = elementRef.current;
         
-        // Enable the element for cornerstone
-        cornerstone.enable(element);
+        // Enable the element
+        if (!cornerstone.getEnabledElement(element)) {
+          cornerstone.enable(element);
+        }
         console.log('Element enabled for cornerstone');
         
         // Load and display the image
@@ -109,7 +113,7 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
           console.log('Viewport updated:', viewport);
         }
         
-        // Set up tools
+        // Activate tools
         cornerstoneTools.setToolActive('Pan', { mouseButtonMask: 1 });
         cornerstoneTools.setToolActive('Zoom', { mouseButtonMask: 2 });
         cornerstoneTools.setToolActive('Wwwc', { mouseButtonMask: 4 });
@@ -118,7 +122,7 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
         console.error('Error initializing DICOM viewer:', error);
         toast({
           title: "Error loading DICOM image",
-          description: "There was an error initializing the DICOM viewer",
+          description: "There was an error loading the DICOM image",
           variant: "destructive"
         });
       }
@@ -134,9 +138,11 @@ const DicomViewer = ({ imageId, position, zoom }: DicomViewerProps) => {
       style={{ 
         width: '100%', 
         height: '100%',
+        minHeight: '400px',
         position: 'relative',
         backgroundColor: '#000',
-        touchAction: 'none'
+        touchAction: 'none',
+        userSelect: 'none'
       }}
       onContextMenu={(e) => e.preventDefault()}
     />
