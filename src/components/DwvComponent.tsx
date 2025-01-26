@@ -10,13 +10,11 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
   const dwvApp = useRef<any>(null);
 
   useEffect(() => {
-    // Ensure dwv is properly loaded
     if (typeof dwv === 'undefined') {
       console.error('DWV library not loaded');
       return;
     }
 
-    // DWV configuration
     const tools = {
       Scroll: {
         options: ['mousewheel', 'touchstart']
@@ -29,7 +27,6 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
       }
     };
 
-    // Initialize DWV
     if (!dwvApp.current) {
       try {
         const app = new dwv.App();
@@ -38,7 +35,7 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
             '*': [{
               divId: 'dwv',
               orientation: 'axial',
-              colourMap: dwv.getColourMap('plain'),
+              colourMap: new dwv.image.ColourMap('plain'),
               opacity: 1.0
             }]
           },
@@ -48,6 +45,7 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
           defaultCharacterSet: 'UTF-8'
         });
         dwvApp.current = app;
+        console.log('DWV App initialized successfully');
       } catch (error) {
         console.error('Error initializing DWV:', error);
       }
@@ -62,9 +60,8 @@ const DwvComponent = ({ imageData }: DwvComponentProps) => {
 
   useEffect(() => {
     if (imageData && dwvApp.current) {
-      // Reset the viewer
+      console.log('Loading new image data');
       dwvApp.current.reset();
-      // Load the image
       dwvApp.current.loadFiles([imageData]);
     }
   }, [imageData]);

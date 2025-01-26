@@ -61,7 +61,7 @@ const XRayControlPanel = ({
   return (
     <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn hidden md:block">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Controls</h2>
+        <h2 className="text-xl font-semibold text-white">MEDFINDER</h2>
         <Button
           variant="ghost"
           size="icon"
