@@ -8,7 +8,7 @@ import {
   Grid2X2,
   Printer,
   Share2,
-  FileExport,
+  FileText,
   Database,
   Network,
   Server,
@@ -128,7 +128,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <FileExport size={20} className="text-white" />, 
+      icon: <FileText size={20} className="text-white" />, 
       name: 'Export DICOM', 
       action: () => {
         toast({ title: "DICOM export feature coming soon" });
