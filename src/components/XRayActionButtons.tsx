@@ -36,7 +36,7 @@ const XRayActionButtons = () => {
   };
 
   return (
-    <div className="flex gap-2 p-2 glass-dark rounded-lg animate-fadeIn self-end">
+    <div className="flex flex-wrap md:flex-nowrap gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
       <Button
         variant="ghost"
         size="icon"
@@ -45,7 +45,7 @@ const XRayActionButtons = () => {
         title="Print"
       >
         <Printer size={20} className="text-white" />
-        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
           Print
         </span>
       </Button>

@@ -162,12 +162,9 @@ const XRayViewer = () => {
   };
 
   return (
-    <div 
-      className="flex h-screen p-4 gap-4 max-w-full overflow-hidden" 
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <div className="flex flex-1 gap-4">
-        <div className="flex gap-4 flex-col">
+    <div className="flex flex-col md:flex-row h-screen w-full gap-4 p-2 md:p-4 overflow-hidden">
+      <div className="flex flex-1 gap-4 min-h-0">
+        <div className="flex flex-col gap-4">
           <XRayToolbar
             isMeasuring={isMeasuring}
             setIsMeasuring={toggleMeasuring}
@@ -185,11 +182,11 @@ const XRayViewer = () => {
           )}
         </div>
 
-        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative">
+        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0">
           {images.length > 0 ? (
-            <>
+            <div className="relative w-full h-full">
               {isGridView ? (
-                <div className="w-full h-[80vh] overflow-auto">
+                <div className="w-full h-full overflow-auto">
                   <XRayGrid
                     images={images}
                     startIndex={Math.floor(currentImageIndex / 4) * 4}
@@ -211,7 +208,7 @@ const XRayViewer = () => {
                   />
                 </div>
               ) : (
-                <div className="relative w-full h-[80vh] flex items-center justify-center">
+                <div className="relative w-full h-full flex items-center justify-center">
                   {isDicomImage(images[currentImageIndex]) ? (
                     <DicomViewer
                       imageId={images[currentImageIndex]}
@@ -285,7 +282,7 @@ const XRayViewer = () => {
                 </div>
               )}
               {images.length > 0 && (
-                <div className="absolute right-0 top-0 bottom-0 w-24">
+                <div className="absolute right-0 top-0 bottom-0">
                   <XRayQueue
                     images={images}
                     currentIndex={currentImageIndex}
@@ -293,14 +290,14 @@ const XRayViewer = () => {
                   />
                 </div>
               )}
-            </>
+            </div>
           ) : (
             <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
           )}
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 min-w-80">
+      <div className="flex flex-col gap-4 md:w-80">
         <XRayActionButtons />
         <XRayControlPanel
           zoom={zoom}
