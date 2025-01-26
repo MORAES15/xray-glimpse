@@ -7,6 +7,7 @@ import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
+import Chat from './Chat';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 
 const XRayViewer = () => {
@@ -23,13 +24,8 @@ const XRayViewer = () => {
   const [measureEnd, setMeasureEnd] = useState<{ x: number; y: number } | null>(null);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isGridView, setIsGridView] = useState(false);
-  const [aiModel, setAiModel] = useState('General Purpose X-Ray AI');
-  const [mode, setMode] = useState('Standard');
-  const [sensitivity, setSensitivity] = useState(50);
-  const [focus, setFocus] = useState(50);
-  const [noiseCancellation, setNoiseCancellation] = useState(50);
   const imageRef = useRef<HTMLImageElement>(null);
-  const { toast } = useToast(); // Move useToast to component level
+  const { toast } = useToast();
 
   useEffect(() => {
     initializeDicomLoader();
@@ -260,26 +256,18 @@ const XRayViewer = () => {
             <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
           )}
         </div>
-
       </div>
 
-      <XRayControlPanel
-        aiModel={aiModel}
-        setAiModel={setAiModel}
-        mode={mode}
-        setMode={setMode}
-        sensitivity={sensitivity}
-        setSensitivity={setSensitivity}
-        focus={focus}
-        setFocus={setFocus}
-        noiseCancellation={noiseCancellation}
-        setNoiseCancellation={setNoiseCancellation}
-        zoom={zoom}
-        setZoom={setZoom}
-        showHeatmap={showHeatmap}
-        setShowHeatmap={setShowHeatmap}
-        onFileUpload={handleFileUpload}
-      />
+      <div className="flex gap-4">
+        <XRayControlPanel
+          zoom={zoom}
+          setZoom={setZoom}
+          showHeatmap={showHeatmap}
+          setShowHeatmap={setShowHeatmap}
+          onFileUpload={handleFileUpload}
+        />
+        <Chat />
+      </div>
     </div>
   );
 };
