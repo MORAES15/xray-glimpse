@@ -44,6 +44,19 @@ const XRayViewer = () => {
     resetMeasurement();
   }, [isGridView, resetMeasurement]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if the click is outside any image
+      if (!target.closest('img')) {
+        resetMeasurement();
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [resetMeasurement]);
+
   const handleImagesUploaded = (newImages: string[]) => {
     if (Array.isArray(newImages) && newImages.length > 0) {
       setImages(prev => [...prev, ...newImages]);
@@ -104,6 +117,8 @@ const XRayViewer = () => {
     } else {
       setIsDragging(true);
     }
+    // Stop event propagation to prevent the outside click handler from firing
+    e.stopPropagation();
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
