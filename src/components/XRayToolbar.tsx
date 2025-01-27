@@ -12,6 +12,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider
 } from "./ui/tooltip";
 import { useToast } from './ui/use-toast';
 import { isDicomImage } from '../utils/dicomLoader';
