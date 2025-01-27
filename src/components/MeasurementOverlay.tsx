@@ -1,5 +1,5 @@
 import React from 'react';
-import RulerTool from './measurement/RulerTool';
+import MeasurementLine from './MeasurementLine';
 
 interface MeasurementOverlayProps {
   measureStart: { x: number; y: number } | null;
@@ -7,6 +7,7 @@ interface MeasurementOverlayProps {
   measureDistance: string | null;
   position: { x: number; y: number };
   zoom: number;
+  isHovered?: boolean;
 }
 
 const MeasurementOverlay = ({
@@ -14,17 +15,32 @@ const MeasurementOverlay = ({
   measureEnd,
   measureDistance,
   position,
-  zoom
+  zoom,
+  isHovered
 }: MeasurementOverlayProps) => {
   if (!measureStart || !measureEnd) return null;
 
   return (
-    <RulerTool
-      start={measureStart}
-      end={measureEnd}
-      distance={measureDistance}
-      zoom={zoom}
-    />
+    <div className="absolute inset-0 pointer-events-none">
+      <svg
+        className="absolute inset-0 measurement-overlay w-full h-full"
+        preserveAspectRatio="none"
+      >
+        <MeasurementLine start={measureStart} end={measureEnd} />
+      </svg>
+      {measureDistance && (
+        <div 
+          className="absolute bg-black/60 px-2 py-1 rounded text-sm text-white"
+          style={{
+            left: `${(measureStart.x + measureEnd.x) / 2}%`,
+            top: `${(measureStart.y + measureEnd.y) / 2}%`,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          {measureDistance}px
+        </div>
+      )}
+    </div>
   );
 };
 

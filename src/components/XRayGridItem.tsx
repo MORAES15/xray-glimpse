@@ -81,6 +81,7 @@ const XRayGridItem = ({
           measureDistance={measureDistance}
           position={position}
           zoom={zoom}
+          isHovered={isHovered}
         />
       )}
 

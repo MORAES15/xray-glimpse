@@ -11,36 +11,10 @@ export const useMeasurement = () => {
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [isMeasuring, setIsMeasuring] = useState(false);
 
-  const calculateRelativePosition = (e: React.MouseEvent<HTMLImageElement>) => {
-    const target = e.target as HTMLImageElement;
-    const rect = target.getBoundingClientRect();
-    
-    // Calculate position relative to the image's natural dimensions
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    return { x, y };
-  };
-
   const handleMeasureClick = useCallback((e: React.MouseEvent<HTMLImageElement>, isGridView: boolean) => {
     if (!isMeasuring) return;
-
-    const pos = calculateRelativePosition(e);
-    
-    if (!measureStart) {
-      setMeasureStart(pos);
-      setMeasureEnd(null);
-      setMeasureDistance(null);
-    } else {
-      setMeasureEnd(pos);
-      // Calculate distance in pixels based on image dimensions
-      const target = e.target as HTMLImageElement;
-      const dx = (pos.x - measureStart.x) * target.naturalWidth / 100;
-      const dy = (pos.y - measureStart.y) * target.naturalHeight / 100;
-      const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
-      setMeasureDistance(distance);
-    }
-  }, [isMeasuring, measureStart]);
+    // The actual click handling is now in XRayViewer component
+  }, [isMeasuring]);
 
   const toggleMeasuring = useCallback((value: boolean) => {
     setIsMeasuring(value);

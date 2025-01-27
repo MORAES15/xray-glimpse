@@ -22,33 +22,28 @@ const ContrastExposureControl = ({
   const { toast } = useToast();
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isAdjusting) return;
-    
     const deltaX = (e.clientX - startPos.x) / 2;
     const deltaY = (startPos.y - e.clientY) / 2;
     
     if (isDicom && imageId) {
       try {
-        const element = document.querySelector('.dicom-image');
-        if (element) {
-          const viewport = cornerstone.getViewport(element);
+        const image = cornerstone.imageCache.imageCache[imageId]?.image;
+        if (image) {
+          const viewport = cornerstone.getDefaultViewportForImage(document.body, image);
           if (viewport) {
             viewport.voi.windowWidth = Math.max(1, viewport.voi.windowWidth + deltaX);
             viewport.voi.windowCenter = viewport.voi.windowCenter + deltaY;
-            cornerstone.setViewport(element, viewport);
+            cornerstone.setViewport(document.body, viewport);
           }
         }
       } catch (error) {
         console.error('Error adjusting DICOM window/level:', error);
       }
     } else {
-      onContrastChange(deltaX);
-      onExposureChange(deltaY);
+      onContrastChange(100 + deltaX);
+      onExposureChange(100 + deltaY);
     }
-    
-    // Update start position for next movement
-    setStartPos({ x: e.clientX, y: e.clientY });
-  }, [startPos, onContrastChange, onExposureChange, isDicom, imageId, isAdjusting]);
+  }, [startPos, onContrastChange, onExposureChange, isDicom, imageId]);
 
   const handleMouseUp = useCallback(() => {
     setIsAdjusting(false);
@@ -57,20 +52,22 @@ const ContrastExposureControl = ({
   }, [handleMouseMove]);
 
   const startAdjusting = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsAdjusting(true);
-    setStartPos({ x: e.clientX, y: e.clientY });
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    toast({
-      title: isDicom ? "Adjusting Window/Level" : "Adjusting Contrast/Exposure",
-      description: "Move mouse horizontally for contrast, vertically for exposure",
-    });
+    if (e.button === 2) { // Right click
+      setIsAdjusting(true);
+      setStartPos({ x: e.clientX, y: e.clientY });
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      toast({
+        title: isDicom ? "Adjusting Window/Level" : "Adjusting Contrast/Exposure",
+        description: "Move mouse horizontally for width, vertically for center",
+      });
+    }
   };
 
   return (
     <div
-      onContextMenu={startAdjusting}
+      onMouseDown={startAdjusting}
+      onContextMenu={(e) => e.preventDefault()}
       className={`hover:bg-medical/20 ${isAdjusting ? 'bg-medical/20' : ''}`}
     >
       <Button

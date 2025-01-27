@@ -20,18 +20,10 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    toast({
-      title: "Processing images",
-      description: `Loading ${files.length} file${files.length > 1 ? 's' : ''}...`,
-    });
-
-    const newImages: string[] = [];
-    const promises: Promise<void>[] = [];
-
-    for (const file of Array.from(files)) {
-      const promise = (async () => {
+    if (files) {
+      const newImages: string[] = [];
+      
+      for (const file of Array.from(files)) {
         try {
           if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
             const imageId = await loadDicomFile(file);
@@ -56,9 +48,26 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             timestamp: new Date()
           };
           
+          console.log('Dispatching message:', message);
+          
+          // Use direct DOM manipulation to ensure the message appears
+          const messages = document.querySelector('.messages-container');
+          if (messages) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            messageDiv.textContent = randomMessage;
+            messages.appendChild(messageDiv);
+          }
+
+          // Also dispatch the event for the React component
           document.dispatchEvent(new CustomEvent('newChatMessage', {
             detail: { message }
           }));
+
+          toast({
+            title: "Image loaded",
+            description: `Successfully loaded ${file.name}`,
+          });
 
         } catch (error) {
           console.error('Error loading file:', error);
@@ -68,16 +77,8 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             variant: "destructive"
           });
         }
-      })();
-
-      promises.push(promise);
-    }
-
-    // Wait for all files to be processed
-    await Promise.all(promises);
-    
-    // Only update the state once all files are processed
-    if (newImages.length > 0) {
+      }
+      
       onImagesUploaded(newImages);
     }
   };
