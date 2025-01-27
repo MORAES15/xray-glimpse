@@ -19,58 +19,71 @@ const MeasurementLine = ({ start, end, zoom, position }: MeasurementLineProps) =
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set canvas size to match container
+      // Set canvas size to match container with device pixel ratio
       const updateCanvasSize = () => {
         const container = canvas.parentElement;
         if (!container) return;
         
-        canvas.width = container.offsetWidth;
-        canvas.height = container.offsetHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = container.offsetWidth * dpr;
+        canvas.height = container.offsetHeight * dpr;
+        
+        // Scale context to account for device pixel ratio
+        ctx.scale(dpr, dpr);
+        canvas.style.width = `${container.offsetWidth}px`;
+        canvas.style.height = `${container.offsetHeight}px`;
       };
 
-      // Update canvas size initially and on resize
       updateCanvasSize();
       
       // Clear previous drawings
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Calculate actual positions considering zoom and pan
-      const adjustedStart = {
-        x: (start.x * canvas.width / 100) + (position.x / zoom),
-        y: (start.y * canvas.height / 100) + (position.y / zoom)
+      // Transform coordinates to match current image state
+      const transformPoint = (point: { x: number; y: number }) => {
+        const container = canvas.parentElement;
+        if (!container) return point;
+
+        return {
+          x: (point.x * container.offsetWidth / 100) * (zoom / 100) + position.x,
+          y: (point.y * container.offsetHeight / 100) * (zoom / 100) + position.y
+        };
       };
 
-      const adjustedEnd = {
-        x: (end.x * canvas.width / 100) + (position.x / zoom),
-        y: (end.y * canvas.height / 100) + (position.y / zoom)
-      };
+      // Calculate transformed points
+      const startPoint = transformPoint(start);
+      const endPoint = transformPoint(end);
 
+      // Draw line with anti-aliasing
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
       // Draw line
       ctx.beginPath();
-      ctx.moveTo(adjustedStart.x, adjustedStart.y);
-      ctx.lineTo(adjustedEnd.x, adjustedEnd.y);
+      ctx.moveTo(startPoint.x, startPoint.y);
+      ctx.lineTo(endPoint.x, endPoint.y);
       ctx.strokeStyle = '#0EA5E9';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Draw endpoints
       ctx.beginPath();
-      ctx.arc(adjustedStart.x, adjustedStart.y, 4, 0, Math.PI * 2);
-      ctx.arc(adjustedEnd.x, adjustedEnd.y, 4, 0, Math.PI * 2);
+      ctx.arc(startPoint.x, startPoint.y, 4, 0, Math.PI * 2);
+      ctx.arc(endPoint.x, endPoint.y, 4, 0, Math.PI * 2);
       ctx.fillStyle = '#0EA5E9';
       ctx.fill();
 
-      // Calculate and draw measurement text
-      const dx = adjustedEnd.x - adjustedStart.x;
-      const dy = adjustedEnd.y - adjustedStart.y;
+      // Calculate distance in image space
+      const dx = endPoint.x - startPoint.x;
+      const dy = endPoint.y - startPoint.y;
       const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
       
       // Position text at midpoint
-      const midX = (adjustedStart.x + adjustedEnd.x) / 2;
-      const midY = (adjustedStart.y + adjustedEnd.y) / 2;
+      const midX = (startPoint.x + endPoint.x) / 2;
+      const midY = (startPoint.y + endPoint.y) / 2;
 
+      // Draw measurement text
       ctx.font = '14px sans-serif';
-      ctx.fillStyle = 'white';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
