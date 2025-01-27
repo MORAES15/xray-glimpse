@@ -123,7 +123,7 @@ const XRayToolbar = ({
                   variant="ghost"
                   size="icon"
                   onClick={tool.action}
-                  className={`hover:bg-medical/20 ${
+                  className={`hover:bg-medical/20 transition-colors ${
                     tool.isActive ? 'bg-medical/20' : ''
                   }`}
                 >
