@@ -65,7 +65,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <ZoomIn size={20} className="text-white" />, 
+      icon: <ZoomIn className="text-white transition-colors" />, 
       name: 'Zoom', 
       action: () => {
         setZoom((prev) => Math.min(200, prev + 10));
@@ -73,7 +73,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Ruler size={20} className="text-white" />, 
+      icon: <Ruler className="text-white transition-colors" />, 
       name: 'Measure',
       isActive: isMeasuring,
       action: () => {
@@ -84,7 +84,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Move size={20} className="text-white" />, 
+      icon: <Move className="text-white transition-colors" />, 
       name: 'Pan',
       isActive: isPanning,
       action: () => {
@@ -93,7 +93,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Maximize size={20} className="text-white" />, 
+      icon: <Maximize className="text-white transition-colors" />, 
       name: 'Fit Screen', 
       action: () => {
         setZoom(100);
@@ -102,7 +102,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Grid2X2 size={20} className="text-white" />, 
+      icon: <Grid2X2 className="text-white transition-colors" />, 
       name: 'Grid View',
       isActive: isGridView,
       action: () => {
@@ -123,11 +123,20 @@ const XRayToolbar = ({
                   variant="ghost"
                   size="icon"
                   onClick={tool.action}
-                  className={`hover:bg-medical/20 transition-colors ${
-                    tool.isActive ? 'bg-medical/40' : ''
-                  }`}
+                  className={`
+                    relative
+                    hover:bg-medical/20 
+                    transition-all duration-200
+                    ${tool.isActive ? 
+                      'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
+                      ''
+                    }
+                  `}
                 >
                   {tool.icon}
+                  {tool.isActive && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
+                  )}
                 </Button>
               </div>
             </TooltipTrigger>

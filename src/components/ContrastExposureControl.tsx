@@ -68,15 +68,26 @@ const ContrastExposureControl = ({
     <div
       onMouseDown={startAdjusting}
       onContextMenu={(e) => e.preventDefault()}
-      className={`hover:bg-medical/20 transition-colors ${isAdjusting ? 'bg-medical/40' : ''}`}
+      className={`
+        relative
+        hover:bg-medical/20 
+        transition-all duration-200
+        ${isAdjusting ? 
+          'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
+          ''
+        }
+      `}
     >
       <Button
         variant="ghost"
         size="icon"
         title={isDicom ? "Right-click to adjust Window/Level" : "Right-click to adjust Contrast/Exposure"}
       >
-        <SunDim size={20} className="text-white" />
+        <SunDim size={20} className="text-white transition-colors" />
       </Button>
+      {isAdjusting && (
+        <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
+      )}
     </div>
   );
 };
