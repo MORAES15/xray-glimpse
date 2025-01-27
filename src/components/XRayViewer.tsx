@@ -11,6 +11,7 @@ import Header from './Header';
 import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 import MeasurementOverlay from './MeasurementOverlay';
+import MeasurementLine from './MeasurementLine';
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -26,6 +27,7 @@ const XRayViewer = () => {
   const { toast } = useToast();
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
   const [isAdjusting, setIsAdjusting] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
 
   const {
     measureStart,
@@ -262,6 +264,7 @@ const XRayViewer = () => {
               setContrast={setContrast}
               setExposure={setExposure}
               currentImageId={images[currentImageIndex]}
+              isPanning={isPanning}
             />
             {isDicomImage(images[currentImageIndex]) && (
               <DicomMetadataPanel imageId={images[currentImageIndex]} />
@@ -319,6 +322,14 @@ const XRayViewer = () => {
                             transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
                           }}
                         />
+                        {measureStart && measureEnd && (
+                          <MeasurementLine
+                            start={measureStart}
+                            end={measureEnd}
+                            zoom={zoom}
+                            position={position}
+                          />
+                        )}
                         <MeasurementOverlay
                           measureStart={measureStart}
                           measureEnd={measureEnd}
