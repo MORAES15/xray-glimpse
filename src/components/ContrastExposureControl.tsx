@@ -22,8 +22,6 @@ const ContrastExposureControl = ({
   const { toast } = useToast();
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isAdjusting) return;
-    
     const deltaX = (e.clientX - startPos.x) / 2;
     const deltaY = (startPos.y - e.clientY) / 2;
     
@@ -42,12 +40,10 @@ const ContrastExposureControl = ({
         console.error('Error adjusting DICOM window/level:', error);
       }
     } else {
-      onContrastChange(Math.max(0, Math.min(200, 100 + deltaX)));
-      onExposureChange(Math.max(0, Math.min(200, 100 + deltaY)));
+      onContrastChange(100 + deltaX);
+      onExposureChange(100 + deltaY);
     }
-    
-    setStartPos({ x: e.clientX, y: e.clientY });
-  }, [startPos, onContrastChange, onExposureChange, isDicom, imageId, isAdjusting]);
+  }, [startPos, onContrastChange, onExposureChange, isDicom, imageId]);
 
   const handleMouseUp = useCallback(() => {
     setIsAdjusting(false);
@@ -57,14 +53,13 @@ const ContrastExposureControl = ({
 
   const startAdjusting = (e: React.MouseEvent) => {
     if (e.button === 2) { // Right click
-      e.preventDefault();
       setIsAdjusting(true);
       setStartPos({ x: e.clientX, y: e.clientY });
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       toast({
         title: isDicom ? "Adjusting Window/Level" : "Adjusting Contrast/Exposure",
-        description: "Move mouse horizontally for contrast, vertically for brightness",
+        description: "Move mouse horizontally for width, vertically for center",
       });
     }
   };
@@ -73,13 +68,12 @@ const ContrastExposureControl = ({
     <div
       onMouseDown={startAdjusting}
       onContextMenu={(e) => e.preventDefault()}
-      className={`rounded-lg transition-colors ${isAdjusting ? 'bg-medical/20' : 'hover:bg-medical/10'}`}
+      className={`hover:bg-medical/20 ${isAdjusting ? 'bg-medical/20' : ''}`}
     >
       <Button
         variant="ghost"
         size="icon"
         title={isDicom ? "Right-click to adjust Window/Level" : "Right-click to adjust Contrast/Exposure"}
-        className={isAdjusting ? 'bg-medical/20' : ''}
       >
         <SunDim size={20} className="text-white" />
       </Button>
