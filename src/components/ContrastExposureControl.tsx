@@ -68,7 +68,7 @@ const ContrastExposureControl = ({
     <div
       onMouseDown={startAdjusting}
       onContextMenu={(e) => e.preventDefault()}
-      className={`hover:bg-medical/20 transition-colors ${isAdjusting ? 'bg-medical/20' : ''}`}
+      className={`hover:bg-medical/20 transition-colors ${isAdjusting ? 'bg-medical/40' : ''}`}
     >
       <Button
         variant="ghost"

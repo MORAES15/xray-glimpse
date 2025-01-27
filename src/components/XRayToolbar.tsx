@@ -88,8 +88,8 @@ const XRayToolbar = ({
       name: 'Pan',
       isActive: isPanning,
       action: () => {
-        setIsDragging(false);
-        toast({ title: "Pan mode activated" });
+        setIsDragging(!isPanning);
+        toast({ title: isPanning ? "Pan mode deactivated" : "Pan mode activated" });
       }
     },
     { 
@@ -124,7 +124,7 @@ const XRayToolbar = ({
                   size="icon"
                   onClick={tool.action}
                   className={`hover:bg-medical/20 transition-colors ${
-                    tool.isActive ? 'bg-medical/20' : ''
+                    tool.isActive ? 'bg-medical/40' : ''
                   }`}
                 >
                   {tool.icon}
