@@ -21,12 +21,18 @@ const RulerTool = ({ start, end, distance, zoom }: RulerToolProps) => {
   const adjustedStart = getAdjustedCoordinates(start);
   const adjustedEnd = getAdjustedCoordinates(end);
 
+  // Calculate the scale factor to maintain measurement accuracy
+  const scaleFactor = 100 / zoom;
+
   return (
     <div className="absolute inset-0 pointer-events-none">
       <svg
         className="absolute inset-0 w-full h-full measurement-overlay"
         preserveAspectRatio="none"
-        style={{ transform: `scale(${1 / (zoom/100)})`, transformOrigin: '0 0' }}
+        style={{ 
+          transform: `scale(${scaleFactor})`,
+          transformOrigin: '0 0'
+        }}
       >
         <line
           x1={`${adjustedStart.x}%`}
@@ -56,7 +62,7 @@ const RulerTool = ({ start, end, distance, zoom }: RulerToolProps) => {
           style={{
             left: `${(adjustedStart.x + adjustedEnd.x) / 2}%`,
             top: `${(adjustedStart.y + adjustedEnd.y) / 2}%`,
-            transform: `translate(-50%, -50%) scale(${1 / (zoom/100)})`
+            transform: `translate(-50%, -50%) scale(${scaleFactor})`
           }}
         >
           {distance}px

@@ -14,6 +14,7 @@ const XRayViewer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isGridView, setIsGridView] = useState(false);
+  const { toast } = useToast();
 
   const {
     measureStart,
@@ -29,6 +30,10 @@ const XRayViewer = () => {
     if (Array.isArray(newImages) && newImages.length > 0) {
       setImages(prev => [...prev, ...newImages]);
       setCurrentImageIndex(images.length);
+      toast({
+        title: "Images uploaded successfully",
+        description: `Added ${newImages.length} new image${newImages.length > 1 ? 's' : ''}`
+      });
     }
   };
 

@@ -22,6 +22,11 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
+    toast({
+      title: "Processing images",
+      description: `Loading ${files.length} file${files.length > 1 ? 's' : ''}...`,
+    });
+
     const newImages: string[] = [];
     const promises: Promise<void>[] = [];
 
@@ -54,11 +59,6 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
           document.dispatchEvent(new CustomEvent('newChatMessage', {
             detail: { message }
           }));
-
-          toast({
-            title: "Image loaded",
-            description: `Successfully loaded ${file.name}`,
-          });
 
         } catch (error) {
           console.error('Error loading file:', error);
