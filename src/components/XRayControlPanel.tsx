@@ -73,7 +73,7 @@ const XRayControlPanel = ({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-foreground">Exposure: {exposure}%</label>
+          <label className="text-sm text-foreground">Image Exposure: {exposure}%</label>
           <Slider
             value={[exposure]}
             onValueChange={([value]) => setExposure(value)}
@@ -85,7 +85,7 @@ const XRayControlPanel = ({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-foreground">Contrast: {contrast}%</label>
+          <label className="text-sm text-foreground">Image Contrast: {contrast}%</label>
           <Slider
             value={[contrast]}
             onValueChange={([value]) => setContrast(value)}
@@ -97,7 +97,7 @@ const XRayControlPanel = ({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-foreground">Window Width: {windowWidth}</label>
+          <label className="text-sm text-foreground">DICOM Window Width: {windowWidth}</label>
           <Slider
             value={[windowWidth]}
             onValueChange={([value]) => setWindowWidth(value)}
@@ -109,7 +109,7 @@ const XRayControlPanel = ({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-foreground">Window Level: {windowLevel}</label>
+          <label className="text-sm text-foreground">DICOM Window Level: {windowLevel}</label>
           <Slider
             value={[windowLevel]}
             onValueChange={([value]) => setWindowLevel(value)}
