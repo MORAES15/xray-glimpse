@@ -78,6 +78,48 @@ const XRayViewer = () => {
     }
   };
 
+  const handleExportImage = () => {
+    const canvas = document.createElement('canvas');
+    const image = document.querySelector('.image-display') as HTMLImageElement;
+    
+    if (!image) {
+      toast({
+        title: "Export failed",
+        description: "No image found to export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      toast({
+        title: "Export failed",
+        description: "Could not create export context",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Draw the image with current contrast and exposure
+    ctx.filter = `contrast(${contrast}%) brightness(${exposure}%)`;
+    ctx.drawImage(image, 0, 0);
+
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `xray-export-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    toast({
+      title: "Image exported successfully",
+      description: "The image has been downloaded to your device"
+    });
+  };
+
   return (
     <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
@@ -93,6 +135,7 @@ const XRayViewer = () => {
             setContrast={setContrast}
             setExposure={setExposure}
             currentImageId={images[currentImageIndex]}
+            onExportImage={handleExportImage}
           />
           {isDicomImage(images[currentImageIndex]) && (
             <DicomMetadataPanel imageId={images[currentImageIndex]} />
