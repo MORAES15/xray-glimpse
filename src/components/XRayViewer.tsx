@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useToast } from './ui/use-toast';
-import XRayQueue from './XRayQueue';
-import XRayGrid from './XRayGrid';
-import XRayToolbar from './XRayToolbar';
-import XRayControlPanel from './XRayControlPanel';
-import DicomMetadataPanel from './DicomMetadataPanel';
-import ImageUploadHandler from './ImageUploadHandler';
-import ImageDisplay from './ImageDisplay';
 import { useMeasurement } from '../hooks/useMeasurement';
-import { initializeDicomLoader, isDicomImage } from '../utils/dicomLoader';
+import ViewerControls from './viewer/ViewerControls';
+import ViewerDisplay from './viewer/ViewerDisplay';
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -20,28 +14,16 @@ const XRayViewer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isGridView, setIsGridView] = useState(false);
-  const { toast } = useToast();
 
   const {
     measureStart,
-    setMeasureStart,
     measureEnd,
-    setMeasureEnd,
     measureDistance,
-    setMeasureDistance,
     isMeasuring,
     handleMeasureClick,
     toggleMeasuring,
     resetMeasurement
   } = useMeasurement();
-
-  useEffect(() => {
-    initializeDicomLoader();
-  }, []);
-
-  useEffect(() => {
-    resetMeasurement();
-  }, [isGridView, resetMeasurement]);
 
   const handleImagesUploaded = (newImages: string[]) => {
     if (Array.isArray(newImages) && newImages.length > 0) {
@@ -104,11 +86,9 @@ const XRayViewer = () => {
       return;
     }
 
-    // Draw the image with current contrast and exposure
     ctx.filter = `contrast(${contrast}%) brightness(${exposure}%)`;
     ctx.drawImage(image, 0, 0);
 
-    // Create download link
     const link = document.createElement('a');
     link.download = `xray-export-${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -123,90 +103,43 @@ const XRayViewer = () => {
   return (
     <div className="flex h-screen p-4 gap-4 max-w-full overflow-hidden">
       <div className="flex flex-1 gap-4 flex-col md:flex-row">
-        <div className="flex gap-4 flex-row md:flex-col">
-          <XRayToolbar
-            isMeasuring={isMeasuring}
-            setIsMeasuring={toggleMeasuring}
-            setZoom={setZoom}
-            setPosition={setPosition}
-            setIsDragging={setIsDragging}
-            isGridView={isGridView}
-            setIsGridView={setIsGridView}
-            setContrast={setContrast}
-            setExposure={setExposure}
-            currentImageId={images[currentImageIndex]}
-            onExportImage={handleExportImage}
-          />
-          {isDicomImage(images[currentImageIndex]) && (
-            <DicomMetadataPanel imageId={images[currentImageIndex]} />
-          )}
-        </div>
-
-        <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative">
-          {images.length > 0 ? (
-            <>
-              {isGridView ? (
-                <XRayGrid
-                  images={images}
-                  startIndex={Math.floor(currentImageIndex / 4) * 4}
-                  contrast={contrast}
-                  exposure={exposure}
-                  onImageClick={handleImageClick}
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                  showHeatmap={showHeatmap}
-                  zoom={zoom}
-                  position={position}
-                  measureStart={measureStart}
-                  measureEnd={measureEnd}
-                  activeImageIndex={currentImageIndex}
-                  isMeasuring={isMeasuring}
-                  measureDistance={measureDistance}
-                />
-              ) : (
-                <div className="relative w-full h-[80vh] flex items-center justify-center">
-                  <ImageDisplay
-                    imageUrl={images[currentImageIndex]}
-                    contrast={contrast}
-                    exposure={exposure}
-                    position={position}
-                    zoom={zoom}
-                    showHeatmap={showHeatmap}
-                    measureStart={measureStart}
-                    measureEnd={measureEnd}
-                    measureDistance={measureDistance}
-                    isMeasuring={isMeasuring}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    onClick={handleImageClick}
-                  />
-                </div>
-              )}
-              <div className="absolute right-0 top-0 bottom-0 w-24">
-                <XRayQueue
-                  images={images}
-                  currentIndex={currentImageIndex}
-                  onSelect={setCurrentImageIndex}
-                />
-              </div>
-            </>
-          ) : (
-            <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
-          )}
-        </div>
-      </div>
-
-      <div className="flex gap-4">
-        <XRayControlPanel
+        <ViewerControls
           zoom={zoom}
           setZoom={setZoom}
           showHeatmap={showHeatmap}
           setShowHeatmap={setShowHeatmap}
-          onFileUpload={() => {}}
+          isMeasuring={isMeasuring}
+          setIsMeasuring={toggleMeasuring}
+          setPosition={setPosition}
+          setIsDragging={setIsDragging}
+          isGridView={isGridView}
+          setIsGridView={setIsGridView}
+          setContrast={setContrast}
+          setExposure={setExposure}
+          currentImageId={images[currentImageIndex]}
+          onExportImage={handleExportImage}
+        />
+        
+        <ViewerDisplay
+          images={images}
+          currentImageIndex={currentImageIndex}
+          setCurrentImageIndex={setCurrentImageIndex}
+          contrast={contrast}
+          exposure={exposure}
+          position={position}
+          zoom={zoom}
+          showHeatmap={showHeatmap}
+          isGridView={isGridView}
+          measureStart={measureStart}
+          measureEnd={measureEnd}
+          measureDistance={measureDistance}
+          isMeasuring={isMeasuring}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onClick={handleImageClick}
+          onImagesUploaded={handleImagesUploaded}
         />
       </div>
     </div>
