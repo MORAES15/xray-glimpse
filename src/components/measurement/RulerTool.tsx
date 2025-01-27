@@ -10,22 +10,23 @@ interface RulerToolProps {
 const RulerTool = ({ start, end, distance, zoom }: RulerToolProps) => {
   if (!start || !end) return null;
 
-  // Adjust coordinates based on zoom
-  const adjustedStart = {
-    x: (start.x * 100) / zoom,
-    y: (start.y * 100) / zoom
+  // Convert coordinates to percentages of the image size
+  const getAdjustedCoordinates = (point: { x: number; y: number }) => {
+    return {
+      x: point.x,
+      y: point.y
+    };
   };
 
-  const adjustedEnd = {
-    x: (end.x * 100) / zoom,
-    y: (end.y * 100) / zoom
-  };
+  const adjustedStart = getAdjustedCoordinates(start);
+  const adjustedEnd = getAdjustedCoordinates(end);
 
   return (
     <div className="absolute inset-0 pointer-events-none">
       <svg
         className="absolute inset-0 w-full h-full measurement-overlay"
         preserveAspectRatio="none"
+        style={{ transform: `scale(${1 / (zoom/100)})`, transformOrigin: '0 0' }}
       >
         <line
           x1={`${adjustedStart.x}%`}
@@ -55,7 +56,7 @@ const RulerTool = ({ start, end, distance, zoom }: RulerToolProps) => {
           style={{
             left: `${(adjustedStart.x + adjustedEnd.x) / 2}%`,
             top: `${(adjustedStart.y + adjustedEnd.y) / 2}%`,
-            transform: 'translate(-50%, -50%)'
+            transform: `translate(-50%, -50%) scale(${1 / (zoom/100)})`
           }}
         >
           {distance}px

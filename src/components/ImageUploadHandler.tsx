@@ -20,10 +20,13 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      
-      for (const file of Array.from(files)) {
+    if (!files || files.length === 0) return;
+
+    const newImages: string[] = [];
+    const promises: Promise<void>[] = [];
+
+    for (const file of Array.from(files)) {
+      const promise = (async () => {
         try {
           if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
             const imageId = await loadDicomFile(file);
@@ -48,18 +51,6 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             timestamp: new Date()
           };
           
-          console.log('Dispatching message:', message);
-          
-          // Use direct DOM manipulation to ensure the message appears
-          const messages = document.querySelector('.messages-container');
-          if (messages) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot-message';
-            messageDiv.textContent = randomMessage;
-            messages.appendChild(messageDiv);
-          }
-
-          // Also dispatch the event for the React component
           document.dispatchEvent(new CustomEvent('newChatMessage', {
             detail: { message }
           }));
@@ -77,8 +68,16 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
             variant: "destructive"
           });
         }
-      }
-      
+      })();
+
+      promises.push(promise);
+    }
+
+    // Wait for all files to be processed
+    await Promise.all(promises);
+    
+    // Only update the state once all files are processed
+    if (newImages.length > 0) {
       onImagesUploaded(newImages);
     }
   };

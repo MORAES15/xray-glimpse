@@ -22,6 +22,8 @@ const ContrastExposureControl = ({
   const { toast } = useToast();
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isAdjusting) return;
+    
     const deltaX = (e.clientX - startPos.x) / 2;
     const deltaY = (startPos.y - e.clientY) / 2;
     
@@ -43,7 +45,10 @@ const ContrastExposureControl = ({
       onContrastChange(deltaX);
       onExposureChange(deltaY);
     }
-  }, [startPos, onContrastChange, onExposureChange, isDicom, imageId]);
+    
+    // Update start position for next movement
+    setStartPos({ x: e.clientX, y: e.clientY });
+  }, [startPos, onContrastChange, onExposureChange, isDicom, imageId, isAdjusting]);
 
   const handleMouseUp = useCallback(() => {
     setIsAdjusting(false);
