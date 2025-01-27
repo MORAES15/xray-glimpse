@@ -28,6 +28,8 @@ const XRayViewer = () => {
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(2000);
+  const [windowLevel, setWindowLevel] = useState(0);
 
   const {
     measureStart,
@@ -322,6 +324,7 @@ const XRayViewer = () => {
                             transform: `translate(${position.x}px, ${position.y}px) scale(${zoom/100})`
                           }}
                         />
+                        {showHeatmap && <div className="heatmap-overlay" />}
                         {measureStart && measureEnd && (
                           <MeasurementLine
                             start={measureStart}
@@ -364,6 +367,14 @@ const XRayViewer = () => {
             showHeatmap={showHeatmap}
             setShowHeatmap={setShowHeatmap}
             onFileUpload={handleFileUpload}
+            exposure={exposure}
+            setExposure={setExposure}
+            contrast={contrast}
+            setContrast={setContrast}
+            windowWidth={windowWidth}
+            setWindowWidth={setWindowWidth}
+            windowLevel={windowLevel}
+            setWindowLevel={setWindowLevel}
           />
         </div>
       </div>

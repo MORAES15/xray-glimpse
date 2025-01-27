@@ -11,6 +11,14 @@ interface XRayControlPanelProps {
   showHeatmap: boolean;
   setShowHeatmap: (value: boolean) => void;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  exposure: number;
+  setExposure: (value: number) => void;
+  contrast: number;
+  setContrast: (value: number) => void;
+  windowWidth: number;
+  setWindowWidth: (value: number) => void;
+  windowLevel: number;
+  setWindowLevel: (value: number) => void;
 }
 
 const XRayControlPanel = ({
@@ -18,25 +26,20 @@ const XRayControlPanel = ({
   setZoom,
   showHeatmap,
   setShowHeatmap,
-  onFileUpload
+  onFileUpload,
+  exposure,
+  setExposure,
+  contrast,
+  setContrast,
+  windowWidth,
+  setWindowWidth,
+  windowLevel,
+  setWindowLevel
 }: XRayControlPanelProps) => {
   const { theme, setTheme } = useTheme();
 
   return (
     <div className="w-80 glass-dark rounded-lg p-6 space-y-6 animate-fadeIn hidden md:block">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-medical/10 flex items-center justify-center ring-2 ring-medical/20">
-            <img 
-              src="/lovable-uploads/c46db37c-b7db-4175-b818-0d049fb39b1c.png" 
-              alt="Medfinder Logo" 
-              className="w-12 h-12 object-contain"
-            />
-          </div>
-          <h2 className="text-4xl font-bold text-foreground tracking-wide">MEDFINDER</h2>
-        </div>
-      </div>
-
       <Button
         variant="outline"
         size="icon"
@@ -65,6 +68,54 @@ const XRayControlPanel = ({
             min={50}
             max={200}
             step={1}
+            className="py-4"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-foreground">Exposure: {exposure}%</label>
+          <Slider
+            value={[exposure]}
+            onValueChange={([value]) => setExposure(value)}
+            min={0}
+            max={200}
+            step={1}
+            className="py-4"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-foreground">Contrast: {contrast}%</label>
+          <Slider
+            value={[contrast]}
+            onValueChange={([value]) => setContrast(value)}
+            min={0}
+            max={200}
+            step={1}
+            className="py-4"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-foreground">Window Width: {windowWidth}</label>
+          <Slider
+            value={[windowWidth]}
+            onValueChange={([value]) => setWindowWidth(value)}
+            min={0}
+            max={4000}
+            step={10}
+            className="py-4"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm text-foreground">Window Level: {windowLevel}</label>
+          <Slider
+            value={[windowLevel]}
+            onValueChange={([value]) => setWindowLevel(value)}
+            min={-1000}
+            max={1000}
+            step={10}
             className="py-4"
           />
         </div>

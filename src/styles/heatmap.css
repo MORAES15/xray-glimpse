@@ -1,0 +1,21 @@
+.heatmap-filter {
+  filter: grayscale(100%) brightness(120%) contrast(80%);
+}
+
+.heatmap-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 255, 0.3) 0%,    /* Blue for cold areas */
+    rgba(0, 255, 0, 0.3) 40%,   /* Green for medium areas */
+    rgba(255, 255, 0, 0.3) 60%, /* Yellow for warm areas */
+    rgba(255, 0, 0, 0.3) 100%   /* Red for hot areas */
+  );
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  pointer-events: none;
+}
