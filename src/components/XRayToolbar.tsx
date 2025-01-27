@@ -12,7 +12,6 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipProvider
 } from "./ui/tooltip";
 import { useToast } from './ui/use-toast';
 import { isDicomImage } from '../utils/dicomLoader';
@@ -113,31 +112,29 @@ const XRayToolbar = ({
   ];
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
-        {tools.map((tool, index) => (
-          <Tooltip key={index}>
-            <TooltipTrigger asChild>
-              <div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={tool.action}
-                  className={`hover:bg-medical/20 ${
-                    tool.isActive ? 'bg-medical/20' : ''
-                  }`}
-                >
-                  {tool.icon}
-                </Button>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
-              <p>{tool.name}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
-      </div>
-    </TooltipProvider>
+    <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
+      {tools.map((tool, index) => (
+        <Tooltip key={index}>
+          <TooltipTrigger asChild>
+            <div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={tool.action}
+                className={`hover:bg-medical/10 transition-colors ${
+                  tool.isActive ? 'bg-medical/20' : ''
+                }`}
+              >
+                {tool.icon}
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
+            <p>{tool.name}</p>
+          </TooltipContent>
+        </Tooltip>
+      ))}
+    </div>
   );
 };
 
