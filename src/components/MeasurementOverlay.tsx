@@ -26,7 +26,12 @@ const MeasurementOverlay = ({
         className="absolute inset-0 measurement-overlay w-full h-full"
         preserveAspectRatio="none"
       >
-        <MeasurementLine start={measureStart} end={measureEnd} />
+        <MeasurementLine 
+          start={measureStart} 
+          end={measureEnd} 
+          zoom={zoom}
+          position={position}
+        />
       </svg>
       {measureDistance && (
         <div 
