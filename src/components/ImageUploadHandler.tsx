@@ -20,66 +20,52 @@ const ImageUploadHandler = ({ onImagesUploaded }: ImageUploadHandlerProps) => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      
-      for (const file of Array.from(files)) {
-        try {
-          if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
-            const imageId = await loadDicomFile(file);
-            if (imageId) {
-              newImages.push(imageId);
-              console.log('DICOM file loaded:', file.name);
-            }
-          } else {
-            const imageUrl = URL.createObjectURL(file);
-            newImages.push(imageUrl);
-            console.log('Image file loaded:', file.name);
+    if (!files || files.length === 0) return;
+
+    const newImages: string[] = [];
+    let successCount = 0;
+    let errorCount = 0;
+    
+    const uploadPromises = Array.from(files).map(async (file) => {
+      try {
+        if (file.type === 'application/dicom' || file.name.toLowerCase().endsWith('.dcm')) {
+          const imageId = await loadDicomFile(file);
+          if (imageId) {
+            newImages.push(imageId);
+            successCount++;
           }
-
-          const randomMessage = diagnosticMessages[Math.floor(Math.random() * diagnosticMessages.length)];
-          console.log('Generated diagnostic message:', randomMessage);
-
-          // Dispatch message event
-          const message = {
-            id: Date.now().toString(),
-            text: randomMessage,
-            sender: 'JamesBot',
-            timestamp: new Date()
-          };
-          
-          console.log('Dispatching message:', message);
-          
-          // Use direct DOM manipulation to ensure the message appears
-          const messages = document.querySelector('.messages-container');
-          if (messages) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot-message';
-            messageDiv.textContent = randomMessage;
-            messages.appendChild(messageDiv);
-          }
-
-          // Also dispatch the event for the React component
-          document.dispatchEvent(new CustomEvent('newChatMessage', {
-            detail: { message }
-          }));
-
-          toast({
-            title: "Image loaded",
-            description: `Successfully loaded ${file.name}`,
-          });
-
-        } catch (error) {
-          console.error('Error loading file:', error);
-          toast({
-            title: "Error loading file",
-            description: `Failed to load ${file.name}. Make sure it's a valid image or DICOM file.`,
-            variant: "destructive"
-          });
+        } else if (file.type.startsWith('image/')) {
+          const imageUrl = URL.createObjectURL(file);
+          newImages.push(imageUrl);
+          successCount++;
+        } else {
+          errorCount++;
+          console.error('Invalid file type:', file.type);
         }
+      } catch (error) {
+        errorCount++;
+        console.error('Error loading file:', error);
       }
+    });
+
+    await Promise.all(uploadPromises);
+
+    if (successCount > 0) {
+      toast({
+        title: "Images uploaded",
+        description: `Successfully loaded ${successCount} image${successCount !== 1 ? 's' : ''}${
+          errorCount > 0 ? `. Failed to load ${errorCount} file${errorCount !== 1 ? 's' : ''}.` : ''
+        }`,
+        variant: errorCount > 0 ? "destructive" : "default"
+      });
       
       onImagesUploaded(newImages);
+    } else if (errorCount > 0) {
+      toast({
+        title: "Upload failed",
+        description: `Failed to load ${errorCount} file${errorCount !== 1 ? 's' : ''}. Please check file types and try again.`,
+        variant: "destructive"
+      });
     }
   };
 
