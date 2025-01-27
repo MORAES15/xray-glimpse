@@ -96,6 +96,7 @@ const XRayToolbar = ({
     { 
       icon: <Ruler size={20} className="text-white" />, 
       name: 'Measure', 
+      isActive: isMeasuring,
       action: () => {
         setIsMeasuring(!isMeasuring);
         if (!isMeasuring) {
@@ -122,7 +123,8 @@ const XRayToolbar = ({
     },
     { 
       icon: <Grid2X2 size={20} className="text-white" />, 
-      name: 'Grid View', 
+      name: 'Grid View',
+      isActive: isGridView,
       action: () => {
         setIsGridView(!isGridView);
         toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
@@ -208,7 +210,7 @@ const XRayToolbar = ({
                   size="icon"
                   onClick={tool.action}
                   className={`hover:bg-medical/20 ${
-                    (tool.name === 'Measure' && isMeasuring) ? 'bg-medical/20' : ''
+                    tool.isActive ? 'bg-medical/20' : ''
                   }`}
                 >
                   {tool.icon}

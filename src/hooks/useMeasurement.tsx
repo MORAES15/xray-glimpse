@@ -15,6 +15,7 @@ export const useMeasurement = () => {
     const target = e.target as HTMLImageElement;
     const rect = target.getBoundingClientRect();
     
+    // Calculate position relative to the image's natural dimensions
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
@@ -32,8 +33,10 @@ export const useMeasurement = () => {
       setMeasureDistance(null);
     } else {
       setMeasureEnd(pos);
-      const dx = pos.x - measureStart.x;
-      const dy = pos.y - measureStart.y;
+      // Calculate distance in pixels based on image dimensions
+      const target = e.target as HTMLImageElement;
+      const dx = (pos.x - measureStart.x) * target.naturalWidth / 100;
+      const dy = (pos.y - measureStart.y) * target.naturalHeight / 100;
       const distance = Math.sqrt(dx * dx + dy * dy).toFixed(2);
       setMeasureDistance(distance);
     }
