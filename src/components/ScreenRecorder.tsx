@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { useToast } from './ui/use-toast';
-import { Record, Play, Square, GripHorizontal } from 'lucide-react';
+import { Circle, Play, Square, GripHorizontal } from 'lucide-react';
 
 interface ScreenRecorderProps {
   onClose: () => void;
@@ -19,7 +19,8 @@ const ScreenRecorder = ({ onClose }: ScreenRecorderProps) => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { mediaSource: "screen" }
+        video: true,
+        audio: false
       });
       
       const mediaRecorder = new MediaRecorder(stream);
@@ -131,7 +132,7 @@ const ScreenRecorder = ({ onClose }: ScreenRecorderProps) => {
         className={`${isRecording ? 'text-red-500 animate-pulse' : ''}`}
         onClick={isRecording ? stopRecording : startRecording}
       >
-        <Record className="h-4 w-4" />
+        <Circle className="h-4 w-4" />
       </Button>
 
       {recordedChunks.length > 0 && (

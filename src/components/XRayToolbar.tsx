@@ -35,12 +35,12 @@ const XRayToolbar = ({
   isPanning,
   onToggleRecording
 }: XRayToolbarProps) => {
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 10, 200));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 10, 10));
+  const handleZoomIn = () => setZoom((prev: number) => Math.min(prev + 10, 200));
+  const handleZoomOut = () => setZoom((prev: number) => Math.max(prev - 10, 10));
   const handleMove = () => setIsDragging(true);
   const handleGridView = () => setIsGridView(!isGridView);
-  const handleContrastChange = (value: number) => setContrast(value);
-  const handleExposureChange = (value: number) => setExposure(value);
+  const handleContrastChange = () => setContrast(prev => prev + 10);
+  const handleExposureChange = () => setExposure(prev => prev + 10);
 
   return (
     <div className="flex flex-col gap-2 bg-black/90 rounded-lg p-2">
@@ -110,7 +110,7 @@ const XRayToolbar = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleContrastChange(contrast + 10)}
+              onClick={handleContrastChange}
               className="hover:bg-white/10"
             >
               <Contrast className="h-4 w-4" />
@@ -125,7 +125,7 @@ const XRayToolbar = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => handleExposureChange(exposure + 10)}
+              onClick={handleExposureChange}
               className="hover:bg-white/10"
             >
               <SunMedium className="h-4 w-4" />
