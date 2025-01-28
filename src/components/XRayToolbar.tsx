@@ -9,13 +9,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 interface XRayToolbarProps {
   isMeasuring: boolean;
   setIsMeasuring: (value: boolean) => void;
-  setZoom: (value: number) => void;
+  setZoom: React.Dispatch<React.SetStateAction<number>>;
   setPosition: (value: { x: number; y: number }) => void;
   setIsDragging: (value: boolean) => void;
   isGridView: boolean;
   setIsGridView: (value: boolean) => void;
-  setContrast: (value: number) => void;
-  setExposure: (value: number) => void;
+  setContrast: React.Dispatch<React.SetStateAction<number>>;
+  setExposure: React.Dispatch<React.SetStateAction<number>>;
   currentImageId: string;
   isPanning: boolean;
   onToggleRecording: () => void;
@@ -35,8 +35,8 @@ const XRayToolbar = ({
   isPanning,
   onToggleRecording
 }: XRayToolbarProps) => {
-  const handleZoomIn = () => setZoom((prev: number) => Math.min(prev + 10, 200));
-  const handleZoomOut = () => setZoom((prev: number) => Math.max(prev - 10, 10));
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 10));
   const handleMove = () => setIsDragging(true);
   const handleGridView = () => setIsGridView(!isGridView);
   const handleContrastChange = () => setContrast(prev => prev + 10);
