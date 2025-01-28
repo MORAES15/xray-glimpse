@@ -12,6 +12,7 @@ import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 import MeasurementOverlay from './MeasurementOverlay';
 import MeasurementLine from './MeasurementLine';
+import { runModel, generatePdfReport, type ModelResult } from '../services/mlService';
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -30,9 +31,8 @@ const XRayViewer = () => {
   const [isPanning, setIsPanning] = useState(false);
   const [windowWidth, setWindowWidth] = useState(2000);
   const [windowLevel, setWindowLevel] = useState(0);
-  const [selectedModel, setSelectedModel] = useState('chest-xray');
-  const [visualizationPreset, setVisualizationPreset] = useState('lung');
-
+  const [selectedModel, setSelectedModel] = useState('deteccao_fratura_x_ray');
+  const [isProcessing, setIsProcessing] = useState(false);
   const {
     measureStart,
     setMeasureStart,
@@ -248,13 +248,65 @@ const XRayViewer = () => {
     }
   };
 
+  const handleRunModel = async () => {
+    if (!images[currentImageIndex]) {
+      toast({
+        title: "No image selected",
+        description: "Please select an image before running the model",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await runModel(selectedModel, images[currentImageIndex]);
+      
+      // Add result to chat
+      const newMessage = {
+        id: Date.now().toString(),
+        text: result.prediction,
+        sender: 'system' as const,
+        timestamp: new Date()
+      };
+      
+      // Dispatch new message event
+      const event = new CustomEvent('newChatMessage', {
+        detail: { message: newMessage }
+      });
+      document.dispatchEvent(event);
+
+      // Generate and download PDF report
+      const pdfBlob = await generatePdfReport(result, images[currentImageIndex]);
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `xray-report-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Analysis complete",
+        description: "The results have been added to the chat and a report has been generated",
+      });
+    } catch (error) {
+      console.error('Error running model:', error);
+      toast({
+        title: "Error running model",
+        description: "There was an error analyzing the image. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <>
       <Header onExportImage={handleExportImage} />
-      <div 
-        className="flex min-h-screen p-4 gap-4 max-w-full overflow-hidden mt-20" 
-        onContextMenu={(e) => e.preventDefault()}
-      >
+      <div className="flex min-h-screen p-4 gap-4 max-w-full overflow-hidden mt-20">
         <div className="flex flex-1 gap-4 flex-col md:flex-row">
           <div className="flex gap-4 flex-row md:flex-col">
             <XRayToolbar
@@ -375,8 +427,8 @@ const XRayViewer = () => {
             setContrast={setContrast}
             selectedModel={selectedModel}
             setSelectedModel={setSelectedModel}
-            visualizationPreset={visualizationPreset}
-            setVisualizationPreset={setVisualizationPreset}
+            onRunModel={handleRunModel}
+            hasImages={images.length > 0}
           />
         </div>
       </div>
