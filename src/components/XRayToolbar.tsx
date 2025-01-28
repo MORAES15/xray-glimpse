@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from './ui/button';
 import { 
   ZoomIn, ZoomOut, Move, Grid3X3, 
-  SunMedium, Contrast, Video
+  SunMedium, Contrast, Video, Ruler
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
@@ -45,6 +45,21 @@ const XRayToolbar = ({
   return (
     <div className="flex flex-col gap-2 bg-black/90 rounded-lg p-2">
       <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMeasuring(!isMeasuring)}
+              className={`hover:bg-white/10 ${isMeasuring ? 'bg-white/20' : ''}`}
+            >
+              <Ruler className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Toggle Measurement Tool</p>
+          </TooltipContent>
+        </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
