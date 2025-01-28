@@ -1,10 +1,24 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { 
-  ZoomIn, ZoomOut, Move, Grid3X3, 
-  SunMedium, Contrast, Video, Ruler
+  ZoomIn, 
+  Ruler, 
+  Maximize, 
+  Move, 
+  Grid2X2,
+  Box,
+  PenTool,
+  MessageSquare
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import ContrastExposureControl from './ContrastExposureControl';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider
+} from "./ui/tooltip";
+import { useToast } from './ui/use-toast';
+import { isDicomImage } from '../utils/dicomLoader';
 
 interface XRayToolbarProps {
   isMeasuring: boolean;
@@ -14,11 +28,10 @@ interface XRayToolbarProps {
   setIsDragging: (value: boolean) => void;
   isGridView: boolean;
   setIsGridView: (value: boolean) => void;
-  setContrast: React.Dispatch<React.SetStateAction<number>>;
-  setExposure: React.Dispatch<React.SetStateAction<number>>;
-  currentImageId: string;
+  setContrast: (value: number) => void;
+  setExposure: (value: number) => void;
+  currentImageId?: string;
   isPanning: boolean;
-  onToggleRecording: () => void;
 }
 
 const XRayToolbar = ({
@@ -33,140 +46,131 @@ const XRayToolbar = ({
   setExposure,
   currentImageId,
   isPanning,
-  onToggleRecording
 }: XRayToolbarProps) => {
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 10));
-  const handleMove = () => setIsDragging(true);
-  const handleGridView = () => setIsGridView(!isGridView);
-  const handleContrastChange = () => setContrast(prev => prev + 10);
-  const handleExposureChange = () => setExposure(prev => prev + 10);
+  const { toast } = useToast();
+  const isDicom = currentImageId ? isDicomImage(currentImageId) : false;
+
+  const tools = [
+    { 
+      icon: <ContrastExposureControl 
+        onContrastChange={setContrast} 
+        onExposureChange={setExposure}
+        isDicom={isDicom}
+        imageId={currentImageId}
+      />, 
+      name: isDicom ? 'Window/Level' : 'Contrast/Exposure',
+      action: () => {
+        toast({ 
+          title: isDicom ? 
+            "Click and drag to adjust window/level" :
+            "Click and drag with RIGHT button to adjust contrast/exposure"
+        });
+      }
+    },
+    { 
+      icon: <ZoomIn className="text-white transition-colors" />, 
+      name: 'Zoom', 
+      action: () => {
+        setZoom((prev) => Math.min(200, prev + 10));
+        toast({ title: "Zoom increased" });
+      }
+    },
+    { 
+      icon: <Ruler className="text-white transition-colors" />, 
+      name: 'Measure',
+      isActive: isMeasuring,
+      action: () => {
+        setIsMeasuring(!isMeasuring);
+        if (!isMeasuring) {
+          toast({ title: "Click two points to measure distance" });
+        }
+      }
+    },
+    { 
+      icon: <Move className="text-white transition-colors" />, 
+      name: 'Pan',
+      isActive: isPanning,
+      action: () => {
+        setIsDragging(!isPanning);
+        toast({ title: isPanning ? "Pan mode deactivated" : "Pan mode activated" });
+      }
+    },
+    { 
+      icon: <Maximize className="text-white transition-colors" />, 
+      name: 'Fit Screen', 
+      action: () => {
+        setZoom(100);
+        setPosition({ x: 0, y: 0 });
+        toast({ title: "Image reset to fit screen" });
+      }
+    },
+    { 
+      icon: <Grid2X2 className="text-white transition-colors" />, 
+      name: 'Grid View',
+      isActive: isGridView,
+      action: () => {
+        setIsGridView(!isGridView);
+        toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
+      }
+    },
+    { 
+      icon: <Box className="text-white transition-colors" />, 
+      name: '3D Reconstruction',
+      action: () => {
+        toast({ title: "3D reconstruction initiated" });
+      }
+    },
+    { 
+      icon: <PenTool className="text-white transition-colors" />, 
+      name: 'Annotation',
+      action: () => {
+        toast({ title: "Annotation tool activated" });
+      }
+    },
+    { 
+      icon: <MessageSquare className="text-white transition-colors" />, 
+      name: 'Comments',
+      action: () => {
+        toast({ title: "Comments panel opened" });
+      }
+    },
+  ];
 
   return (
-    <div className="flex flex-col gap-2 bg-black/90 rounded-lg p-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMeasuring(!isMeasuring)}
-              className={`hover:bg-white/10 ${isMeasuring ? 'bg-white/20' : ''}`}
-            >
-              <Ruler className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Toggle Measurement Tool</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomIn}
-              className="hover:bg-white/10"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Zoom In</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomOut}
-              className="hover:bg-white/10"
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Zoom Out</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleMove}
-              className="hover:bg-white/10"
-            >
-              <Move className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Move</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleGridView}
-              className="hover:bg-white/10"
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Toggle Grid View</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleContrastChange}
-              className="hover:bg-white/10"
-            >
-              <Contrast className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Increase Contrast</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleExposureChange}
-              className="hover:bg-white/10"
-            >
-              <SunMedium className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Increase Exposure</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleRecording}
-              className="hover:bg-white/10"
-            >
-              <Video className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Toggle Screen Recording</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
+        {tools.map((tool, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={tool.action}
+                  className={`
+                    relative
+                    hover:bg-medical/20 
+                    transition-all duration-200
+                    ${tool.isActive ? 
+                      'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
+                      ''
+                    }
+                  `}
+                >
+                  {tool.icon}
+                  {tool.isActive && (
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
+                  )}
+                </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
+              <p>{tool.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
   );
 };
 

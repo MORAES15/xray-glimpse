@@ -13,7 +13,6 @@ import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dic
 import MeasurementOverlay from './MeasurementOverlay';
 import MeasurementLine from './MeasurementLine';
 import { runModel, generatePdfReport, type ModelResult } from '../services/mlService';
-import ScreenRecorder from './ScreenRecorder';
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -46,7 +45,6 @@ const XRayViewer = () => {
     toggleMeasuring,
     resetMeasurement
   } = useMeasurement();
-  const [showRecorder, setShowRecorder] = useState(false);
 
   useEffect(() => {
     initializeDicomLoader();
@@ -323,7 +321,6 @@ const XRayViewer = () => {
               setExposure={setExposure}
               currentImageId={images[currentImageIndex]}
               isPanning={isPanning}
-              onToggleRecording={() => setShowRecorder(!showRecorder)}
             />
             {isDicomImage(images[currentImageIndex]) && (
               <DicomMetadataPanel imageId={images[currentImageIndex]} />
@@ -435,7 +432,6 @@ const XRayViewer = () => {
           />
         </div>
       </div>
-      {showRecorder && <ScreenRecorder onClose={() => setShowRecorder(false)} />}
     </>
   );
 };
