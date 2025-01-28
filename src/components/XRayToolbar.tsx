@@ -6,7 +6,7 @@ import {
   Maximize, 
   Move, 
   Grid2X2,
-  Box3d,
+  Box,
   PenTool,
   MessageSquare
 } from 'lucide-react';
@@ -114,7 +114,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Box3d className="text-white transition-colors" />, 
+      icon: <Box className="text-white transition-colors" />, 
       name: '3D Reconstruction',
       action: () => {
         toast({ title: "3D reconstruction initiated" });
