@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { 
   ZoomIn, 
@@ -8,7 +8,8 @@ import {
   Grid2X2,
   Box,
   PenTool,
-  MessageSquare
+  MessageSquare,
+  Video
 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import {
@@ -19,6 +20,7 @@ import {
 } from "./ui/tooltip";
 import { useToast } from './ui/use-toast';
 import { isDicomImage } from '../utils/dicomLoader';
+import ScreenRecorder from './ScreenRecorder';
 
 interface XRayToolbarProps {
   isMeasuring: boolean;
@@ -28,8 +30,8 @@ interface XRayToolbarProps {
   setIsDragging: (value: boolean) => void;
   isGridView: boolean;
   setIsGridView: (value: boolean) => void;
-  setContrast: (value: number) => void;
-  setExposure: (value: number) => void;
+  setContrast: React.Dispatch<React.SetStateAction<number>>;
+  setExposure: React.Dispatch<React.SetStateAction<number>>;
   currentImageId?: string;
   isPanning: boolean;
 }
@@ -49,6 +51,7 @@ const XRayToolbar = ({
 }: XRayToolbarProps) => {
   const { toast } = useToast();
   const isDicom = currentImageId ? isDicomImage(currentImageId) : false;
+  const [isRecording, setIsRecording] = useState(false);
 
   const tools = [
     { 
@@ -71,7 +74,7 @@ const XRayToolbar = ({
       icon: <ZoomIn className="text-white transition-colors" />, 
       name: 'Zoom', 
       action: () => {
-        setZoom((prev) => Math.min(200, prev + 10));
+        setZoom(prev => Math.min(200, prev + 10));
         toast({ title: "Zoom increased" });
       }
     },
@@ -134,15 +137,29 @@ const XRayToolbar = ({
         toast({ title: "Comments panel opened" });
       }
     },
+    { 
+      icon: <Video className="text-white transition-colors" />, 
+      name: 'Screen Recording',
+      isActive: isRecording,
+      action: () => {
+        setIsRecording(!isRecording);
+        toast({ 
+          title: isRecording ? "Screen recording stopped" : "Screen recording started",
+          description: isRecording ? 
+            "Your recording has been saved" : 
+            "Click and drag the floating menu to reposition it"
+        });
+      }
+    },
   ];
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn">
+      <div className="flex flex-col gap-2 p-2 glass-dark rounded-lg animate-fadeIn relative z-10">
         {tools.map((tool, index) => (
           <Tooltip key={index}>
             <TooltipTrigger asChild>
-              <div>
+              <div className="relative z-50">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -164,11 +181,12 @@ const XRayToolbar = ({
                 </Button>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-black/80 text-white border-none px-3 py-1.5">
+            <TooltipContent side="right" className="z-[60] bg-black/80 text-white border-none px-3 py-1.5">
               <p>{tool.name}</p>
             </TooltipContent>
           </Tooltip>
         ))}
+        <ScreenRecorder isVisible={isRecording} />
       </div>
     </TooltipProvider>
   );
