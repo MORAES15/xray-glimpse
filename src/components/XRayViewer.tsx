@@ -30,6 +30,8 @@ const XRayViewer = () => {
   const [isPanning, setIsPanning] = useState(false);
   const [windowWidth, setWindowWidth] = useState(2000);
   const [windowLevel, setWindowLevel] = useState(0);
+  const [selectedModel, setSelectedModel] = useState('chest-xray');
+  const [visualizationPreset, setVisualizationPreset] = useState('lung');
 
   const {
     measureStart,
@@ -371,10 +373,10 @@ const XRayViewer = () => {
             setExposure={setExposure}
             contrast={contrast}
             setContrast={setContrast}
-            windowWidth={windowWidth}
-            setWindowWidth={setWindowWidth}
-            windowLevel={windowLevel}
-            setWindowLevel={setWindowLevel}
+            selectedModel={selectedModel}
+            setSelectedModel={setSelectedModel}
+            visualizationPreset={visualizationPreset}
+            setVisualizationPreset={setVisualizationPreset}
           />
         </div>
       </div>

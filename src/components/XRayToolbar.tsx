@@ -6,6 +6,9 @@ import {
   Maximize, 
   Move, 
   Grid2X2,
+  Cube,
+  PenTool,
+  Comment
 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import {
@@ -108,6 +111,27 @@ const XRayToolbar = ({
       action: () => {
         setIsGridView(!isGridView);
         toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
+      }
+    },
+    { 
+      icon: <Cube className="text-white transition-colors" />, 
+      name: '3D Reconstruction',
+      action: () => {
+        toast({ title: "3D reconstruction initiated" });
+      }
+    },
+    { 
+      icon: <PenTool className="text-white transition-colors" />, 
+      name: 'Annotation',
+      action: () => {
+        toast({ title: "Annotation tool activated" });
+      }
+    },
+    { 
+      icon: <Comment className="text-white transition-colors" />, 
+      name: 'Comments',
+      action: () => {
+        toast({ title: "Comments panel opened" });
       }
     },
   ];
