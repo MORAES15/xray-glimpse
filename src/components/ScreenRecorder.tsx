@@ -19,7 +19,7 @@ const ScreenRecorder = ({ isVisible }: ScreenRecorderProps) => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { cursor: "always" },
+        video: true,
         audio: false
       });
 
