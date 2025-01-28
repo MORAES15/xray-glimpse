@@ -6,9 +6,9 @@ import {
   Maximize, 
   Move, 
   Grid2X2,
-  Cube,
+  Box3d,
   PenTool,
-  Comment
+  MessageSquare
 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import {
@@ -114,7 +114,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Cube className="text-white transition-colors" />, 
+      icon: <Box3d className="text-white transition-colors" />, 
       name: '3D Reconstruction',
       action: () => {
         toast({ title: "3D reconstruction initiated" });
@@ -128,7 +128,7 @@ const XRayToolbar = ({
       }
     },
     { 
-      icon: <Comment className="text-white transition-colors" />, 
+      icon: <MessageSquare className="text-white transition-colors" />, 
       name: 'Comments',
       action: () => {
         toast({ title: "Comments panel opened" });
