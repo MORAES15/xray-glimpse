@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Sun, Moon, Upload } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import ChatContainer from './chat/ChatContainer';
@@ -15,10 +16,10 @@ interface XRayControlPanelProps {
   setExposure: (value: number) => void;
   contrast: number;
   setContrast: (value: number) => void;
-  windowWidth: number;
-  setWindowWidth: (value: number) => void;
-  windowLevel: number;
-  setWindowLevel: (value: number) => void;
+  selectedModel: string;
+  setSelectedModel: (value: string) => void;
+  visualizationPreset: string;
+  setVisualizationPreset: (value: string) => void;
 }
 
 const XRayControlPanel = ({
@@ -31,10 +32,10 @@ const XRayControlPanel = ({
   setExposure,
   contrast,
   setContrast,
-  windowWidth,
-  setWindowWidth,
-  windowLevel,
-  setWindowLevel
+  selectedModel,
+  setSelectedModel,
+  visualizationPreset,
+  setVisualizationPreset
 }: XRayControlPanelProps) => {
   const { theme, setTheme } = useTheme();
 
@@ -97,27 +98,33 @@ const XRayControlPanel = ({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-foreground">DICOM Window Width: {windowWidth}</label>
-          <Slider
-            value={[windowWidth]}
-            onValueChange={([value]) => setWindowWidth(value)}
-            min={0}
-            max={4000}
-            step={10}
-            className="py-4"
-          />
+          <label className="text-sm text-foreground">Model Selection</label>
+          <Select value={selectedModel} onValueChange={setSelectedModel}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="chest-xray">Chest X-Ray Detection</SelectItem>
+              <SelectItem value="bone-fracture">Bone Fracture Detection</SelectItem>
+              <SelectItem value="pneumonia">Pneumonia Detection</SelectItem>
+              <SelectItem value="tuberculosis">Tuberculosis Detection</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-foreground">DICOM Window Level: {windowLevel}</label>
-          <Slider
-            value={[windowLevel]}
-            onValueChange={([value]) => setWindowLevel(value)}
-            min={-1000}
-            max={1000}
-            step={10}
-            className="py-4"
-          />
+          <label className="text-sm text-foreground">Visualization Preset</label>
+          <Select value={visualizationPreset} onValueChange={setVisualizationPreset}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select preset" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="lung">Lung Preset</SelectItem>
+              <SelectItem value="bone">Bone Preset</SelectItem>
+              <SelectItem value="soft-tissue">Soft Tissue Preset</SelectItem>
+              <SelectItem value="mediastinum">Mediastinum Preset</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
