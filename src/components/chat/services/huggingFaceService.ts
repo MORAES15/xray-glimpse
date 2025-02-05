@@ -1,6 +1,6 @@
 // src/components/chat/services/huggingFaceService.ts
 
-const HUGGINGFACE_API_TOKEN = "";
+const HUGGINGFACE_API_TOKEN = "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";
 const HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large";
 
 export async function generateResponse(input: string, chatHistory: { sender: string; text: string }[]): Promise<string> {
