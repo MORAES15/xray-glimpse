@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import ChatMessage, { type ChatMessage as ChatMessageType } from './ChatMessage';
 import { useToast } from '@/components/ui/use-toast';
-import { generateResponse } from './services/huggingFaceService';
+import { generateResponse } from './services/LLMService';
 
 const ChatContainer = () => {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
@@ -48,7 +48,7 @@ const ChatContainer = () => {
         sender: msg.sender
       }));
   
-      const botResponse = await generateResponse(inputText, messageHistory);
+      const botResponse = await generateResponse(inputText, messageHistory, messages.length === 0);
   
       const botMessage: ChatMessageType = {
         id: (Date.now() + 1).toString(),
