@@ -36,8 +36,7 @@ const ModelSelection = ({ selectedModel, onModelSelect, onRunModel, disabled }: 
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="deteccao_fratura_x_ray">Detecção Fratura X-Ray</SelectItem>
-            <SelectItem value="modelo_2">Modelo 2</SelectItem>
-            <SelectItem value="modelo_3">Modelo 3</SelectItem>
+            <SelectItem value="deteccao_fratura_O_C_M">Detecção Fratura O_C_M</SelectItem>
           </SelectContent>
         </Select>
       </div>
