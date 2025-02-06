@@ -10,7 +10,8 @@ import {
   PenTool,
   MessageSquare,
   Video,
-  Layers
+  Layers,
+  Check
 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import {
@@ -59,7 +60,19 @@ const XRayToolbar = ({
   const { toast } = useToast();
   const isDicom = currentImageId ? isDicomImage(currentImageId) : false;
   const [isRecording, setIsRecording] = useState(false);
-  const [selectedCut, setSelectedCut] = useState<string | null>(null);
+  const [selectedCuts, setSelectedCuts] = useState<Set<string>>(new Set());
+
+  const toggleCut = (cut: string) => {
+    const newCuts = new Set(selectedCuts);
+    if (newCuts.has(cut)) {
+      newCuts.delete(cut);
+      toast({ title: `${cut} cut removed` });
+    } else {
+      newCuts.add(cut);
+      toast({ title: `${cut} cut added` });
+    }
+    setSelectedCuts(newCuts);
+  };
 
   const tools = [
     { 
@@ -126,8 +139,8 @@ const XRayToolbar = ({
     },
     {
       icon: <Layers className="text-white transition-colors" />,
-      name: 'Select Cut',
-      isActive: !!selectedCut,
+      name: 'Select Cuts',
+      isActive: selectedCuts.size > 0,
       customContent: (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -138,46 +151,29 @@ const XRayToolbar = ({
                 relative
                 hover:bg-medical/20 
                 transition-all duration-200
-                ${selectedCut ? 
+                ${selectedCuts.size > 0 ? 
                   'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
                   ''
                 }
               `}
             >
               <Layers className="text-white transition-colors" />
-              {selectedCut && (
+              {selectedCuts.size > 0 && (
                 <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-32 bg-black/90 border-medical/20">
-            <DropdownMenuItem 
-              className="text-white hover:bg-medical/20 cursor-pointer"
-              onClick={() => {
-                setSelectedCut('axial');
-                toast({ title: "Axial cut selected" });
-              }}
-            >
-              Axial
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="text-white hover:bg-medical/20 cursor-pointer"
-              onClick={() => {
-                setSelectedCut('sagittal');
-                toast({ title: "Sagittal cut selected" });
-              }}
-            >
-              Sagittal
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="text-white hover:bg-medical/20 cursor-pointer"
-              onClick={() => {
-                setSelectedCut('coronal');
-                toast({ title: "Coronal cut selected" });
-              }}
-            >
-              Coronal
-            </DropdownMenuItem>
+            {['axial', 'sagittal', 'coronal'].map(cut => (
+              <DropdownMenuItem 
+                key={cut}
+                className="text-white hover:bg-medical/20 cursor-pointer flex items-center justify-between"
+                onClick={() => toggleCut(cut)}
+              >
+                <span className="capitalize">{cut}</span>
+                {selectedCuts.has(cut) && <Check className="w-4 h-4 text-medical" />}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       )
