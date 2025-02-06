@@ -8,6 +8,7 @@ import {
   Network,
   Server,
   AlertCircle,
+  Package,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -26,6 +27,7 @@ const Header = ({ onExportImage }: HeaderProps) => {
     { icon: <Share2 size={20} />, name: 'Share', action: () => {} },
     { icon: <Database size={20} />, name: 'Export DICOM', action: () => {} },
     { icon: <Database size={20} />, name: 'Export Data', action: () => {} },
+    { icon: <Package size={20} />, name: 'Export 3D Model', action: () => {} },
     { icon: <Network size={20} />, name: 'Connect Network', action: () => {} },
     { icon: <Server size={20} />, name: 'Connect PACS', action: () => {} },
     { icon: <AlertCircle size={20} />, name: 'Report Problem', action: () => {} },
