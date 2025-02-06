@@ -8,6 +8,7 @@ import DicomMetadataPanel from './DicomMetadataPanel';
 import ImageUploadHandler from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
 import Header from './Header';
+import PlaybackControls from './PlaybackControls';
 import { useMeasurement } from '../hooks/useMeasurement';
 import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dicomLoader';
 import MeasurementOverlay from './MeasurementOverlay';
@@ -51,14 +52,13 @@ const XRayViewer = () => {
   }, []);
 
   useEffect(() => {
-    // Reset measurement when switching views
     resetMeasurement();
   }, [isGridView, resetMeasurement]);
 
   const handleImagesUploaded = (newImages: string[]) => {
     if (Array.isArray(newImages) && newImages.length > 0) {
       setImages(prev => [...prev, ...newImages]);
-      setCurrentImageIndex(images.length); // Set to the index of the newly added image
+      setCurrentImageIndex(images.length);
     }
   };
 
@@ -109,7 +109,7 @@ const XRayViewer = () => {
   const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
     if (isMeasuring) return;
     
-    if (e.button === 2) { // Right click
+    if (e.button === 2) {
       setIsAdjusting(true);
       setStartPos({ x: e.clientX, y: e.clientY });
     } else {
@@ -148,15 +148,12 @@ const XRayViewer = () => {
     const target = e.target as HTMLImageElement;
     const rect = target.getBoundingClientRect();
     
-    // Calculate the scaled dimensions
     const scaleX = target.naturalWidth / (rect.width * (zoom / 100));
     const scaleY = target.naturalHeight / (rect.height * (zoom / 100));
     
-    // Adjust for current position and zoom
     const adjustedX = (e.clientX - rect.left - position.x) * scaleX;
     const adjustedY = (e.clientY - rect.top - position.y) * scaleY;
     
-    // Convert to percentage
     const x = (adjustedX / target.naturalWidth) * 100;
     const y = (adjustedY / target.naturalHeight) * 100;
     
@@ -164,7 +161,7 @@ const XRayViewer = () => {
   };
 
   const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, clickedImageIndex?: number) => {
-    if (e.button === 2) { // Right click
+    if (e.button === 2) {
       toggleMeasuring(false);
       return;
     }
@@ -205,19 +202,15 @@ const XRayViewer = () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    // Set canvas dimensions to match the image
     canvas.width = imageElement.naturalWidth;
     canvas.height = imageElement.naturalHeight;
     
     if (ctx) {
-      // Draw the image with its current filters
       ctx.filter = imageElement.style.filter;
       ctx.drawImage(imageElement, 0, 0);
       
-      // Get the SVG element containing measurements
       const svgElement = document.querySelector('.measurement-overlay') as SVGElement;
       if (svgElement) {
-        // Convert SVG to image and draw it on top
         const svgData = new XMLSerializer().serializeToString(svgElement);
         const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
         const svgUrl = URL.createObjectURL(svgBlob);
@@ -225,7 +218,6 @@ const XRayViewer = () => {
         const img = new Image();
         img.onload = () => {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          // Create download link
           const link = document.createElement('a');
           link.download = 'xray-export.png';
           link.href = canvas.toDataURL('image/png');
@@ -234,7 +226,6 @@ const XRayViewer = () => {
         };
         img.src = svgUrl;
       } else {
-        // If no measurements, just export the image
         const link = document.createElement('a');
         link.download = 'xray-export.png';
         link.href = canvas.toDataURL('image/png');
@@ -262,7 +253,6 @@ const XRayViewer = () => {
     try {
       const result = await runModel(selectedModel, images[currentImageIndex]);
       
-      // Add result to chat
       const newMessage = {
         id: Date.now().toString(),
         text: result.prediction,
@@ -270,13 +260,11 @@ const XRayViewer = () => {
         timestamp: new Date()
       };
       
-      // Dispatch new message event
       const event = new CustomEvent('newChatMessage', {
         detail: { message: newMessage }
       });
       document.dispatchEvent(event);
 
-      // Generate and download PDF report
       const pdfBlob = await generatePdfReport(result, images[currentImageIndex]);
       const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
@@ -330,6 +318,7 @@ const XRayViewer = () => {
           <div className="flex-1 bg-black/90 rounded-lg flex items-center justify-center overflow-hidden relative">
             {images.length > 0 ? (
               <>
+                <PlaybackControls />
                 {isGridView ? (
                   <div className="w-full h-[80vh] overflow-auto">
                     <XRayGrid
