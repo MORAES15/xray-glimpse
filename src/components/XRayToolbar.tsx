@@ -9,7 +9,8 @@ import {
   Box,
   PenTool,
   MessageSquare,
-  Video
+  Video,
+  Layers
 } from 'lucide-react';
 import ContrastExposureControl from './ContrastExposureControl';
 import {
@@ -18,6 +19,12 @@ import {
   TooltipTrigger,
   TooltipProvider
 } from "./ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { useToast } from './ui/use-toast';
 import { isDicomImage } from '../utils/dicomLoader';
 import ScreenRecorder from './ScreenRecorder';
@@ -52,6 +59,7 @@ const XRayToolbar = ({
   const { toast } = useToast();
   const isDicom = currentImageId ? isDicomImage(currentImageId) : false;
   const [isRecording, setIsRecording] = useState(false);
+  const [selectedCut, setSelectedCut] = useState<string | null>(null);
 
   const tools = [
     { 
@@ -116,6 +124,64 @@ const XRayToolbar = ({
         toast({ title: isGridView ? "Single view activated" : "Grid view activated" });
       }
     },
+    {
+      icon: <Layers className="text-white transition-colors" />,
+      name: 'Select Cut',
+      isActive: !!selectedCut,
+      customContent: (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`
+                relative
+                hover:bg-medical/20 
+                transition-all duration-200
+                ${selectedCut ? 
+                  'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
+                  ''
+                }
+              `}
+            >
+              <Layers className="text-white transition-colors" />
+              {selectedCut && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-32 bg-black/90 border-medical/20">
+            <DropdownMenuItem 
+              className="text-white hover:bg-medical/20 cursor-pointer"
+              onClick={() => {
+                setSelectedCut('axial');
+                toast({ title: "Axial cut selected" });
+              }}
+            >
+              Axial
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              className="text-white hover:bg-medical/20 cursor-pointer"
+              onClick={() => {
+                setSelectedCut('sagittal');
+                toast({ title: "Sagittal cut selected" });
+              }}
+            >
+              Sagittal
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              className="text-white hover:bg-medical/20 cursor-pointer"
+              onClick={() => {
+                setSelectedCut('coronal');
+                toast({ title: "Coronal cut selected" });
+              }}
+            >
+              Coronal
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
     { 
       icon: <Box className="text-white transition-colors" />, 
       name: '3D Reconstruction',
@@ -160,25 +226,27 @@ const XRayToolbar = ({
           <Tooltip key={index}>
             <TooltipTrigger asChild>
               <div className="relative z-50">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={tool.action}
-                  className={`
-                    relative
-                    hover:bg-medical/20 
-                    transition-all duration-200
-                    ${tool.isActive ? 
-                      'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
-                      ''
-                    }
-                  `}
-                >
-                  {tool.icon}
-                  {tool.isActive && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
-                  )}
-                </Button>
+                {tool.customContent || (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={tool.action}
+                    className={`
+                      relative
+                      hover:bg-medical/20 
+                      transition-all duration-200
+                      ${tool.isActive ? 
+                        'bg-medical/30 shadow-[0_0_10px_rgba(14,165,233,0.3)] ring-1 ring-medical/50 [&_svg]:text-medical' : 
+                        ''
+                      }
+                    `}
+                  >
+                    {tool.icon}
+                    {tool.isActive && (
+                      <span className="absolute top-1 right-1 w-2 h-2 bg-medical rounded-full animate-pulse" />
+                    )}
+                  </Button>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" className="z-[60] bg-black/80 text-white border-none px-3 py-1.5">
