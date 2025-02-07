@@ -25,7 +25,7 @@ JamesBot:`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "palmyra-med-70b-32k", // Substitua pelo nome do modelo carregado
+        model: "llama-2-13b-chat", // Substitua pelo nome do modelo carregado
         prompt: prompt,
         max_tokens: 300,
         temperature: 0.5,
