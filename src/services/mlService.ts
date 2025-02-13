@@ -13,6 +13,11 @@ export const runModel = async (modelId: string, imageUrl: string): Promise<Model
     porta_modelo = '/predict';
   } else if (modelId === 'deteccao_fratura_O_C_M') {
     porta_modelo = '/predict_fratura_2';
+  } else if (modelId === 'deteccao_tumor_cerebral') {
+    porta_modelo = '/classificar_tumor';
+  }
+    else if (modelId === 'deteccao_segmentacao_recontrucao_tumor_cerebral') {
+    porta_modelo = '/reconstruir_imagem';
   } else {
     throw new Error('Unsupported model ID');
   }

@@ -37,6 +37,8 @@ const ModelSelection = ({ selectedModel, onModelSelect, onRunModel, disabled }: 
           <SelectContent>
             <SelectItem value="deteccao_fratura_x_ray">Detecção Fratura X-Ray</SelectItem>
             <SelectItem value="deteccao_fratura_O_C_M">Detecção Fratura O_C_M</SelectItem>
+            <SelectItem value='deteccao_tumor_cerebral'>Detecção Tumor cerebral RM</SelectItem>
+            <SelectItem value='deteccao_segmentacao_recontrucao_tumor_cerebral'>DSR Tumor Cerebral RM</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -5,7 +5,7 @@ import XRayGrid from './XRayGrid';
 import XRayToolbar from './XRayToolbar';
 import XRayControlPanel from './XRayControlPanel';
 import DicomMetadataPanel from './DicomMetadataPanel';
-import ImageUploadHandler from './ImageUploadHandler';
+import FileUpload from './ImageUploadHandler';
 import DicomViewer from './DicomViewer';
 import Header from './Header';
 import { useMeasurement } from '../hooks/useMeasurement';
@@ -13,6 +13,8 @@ import { initializeDicomLoader, isDicomImage, loadDicomFile } from '../utils/dic
 import MeasurementOverlay from './MeasurementOverlay';
 import MeasurementLine from './MeasurementLine';
 import { runModel, generatePdfReport, type ModelResult } from '../services/mlService';
+
+
 
 const XRayViewer = () => {
   const [images, setImages] = useState<string[]>([]);
@@ -61,6 +63,7 @@ const XRayViewer = () => {
       setCurrentImageIndex(images.length); // Set to the index of the newly added image
     }
   };
+
 
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -409,7 +412,7 @@ const XRayViewer = () => {
                 )}
               </>
             ) : (
-              <ImageUploadHandler onImagesUploaded={handleImagesUploaded} />
+              <FileUpload onImagesUploaded={handleImagesUploaded} />
             )}
           </div>
         </div>
